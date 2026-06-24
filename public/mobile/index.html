@@ -2736,23 +2736,23 @@
         <div class="m-bottom-nav">
           <div class="m-nav-item active" onclick="showSection('dashboard')">
             <div class="m-nav-active-dot"></div>
-            <div class="m-nav-icon">📊</div>
+            <i data-lucide="layout-dashboard" class="lucide-icon m-nav-icon"></i>
             <div class="m-nav-label" style="color:#2E86AB;">Dashboard</div>
           </div>
           <div class="m-nav-item" onclick="showSection('ventas')">
-            <div class="m-nav-icon">🛒</div>
+            <i data-lucide="shopping-cart" class="lucide-icon m-nav-icon"></i>
             <div class="m-nav-label">Ventas</div>
           </div>
           <div class="m-nav-item" onclick="showSection('stock')">
-            <div class="m-nav-icon">🏭</div>
+            <i data-lucide="package" class="lucide-icon m-nav-icon"></i>
             <div class="m-nav-label">Stock</div>
           </div>
           <div class="m-nav-item" onclick="showSection('clientes')">
-            <div class="m-nav-icon">👥</div>
+            <i data-lucide="users" class="lucide-icon m-nav-icon"></i>
             <div class="m-nav-label">Clientes</div>
           </div>
           <div class="m-nav-item" onclick="showSection('mas')">
-            <div class="m-nav-icon">☰</div>
+            <i data-lucide="grid-2x2" class="lucide-icon m-nav-icon"></i>
             <div class="m-nav-label">Más</div>
           </div>
         </div>
@@ -3304,6 +3304,7 @@ window.addEventListener('DOMContentLoaded', () => {
     badge.style.display = 'flex';
     badge.textContent = noLeidas.length;
   }
+  if (typeof lucide !== 'undefined') lucide.createIcons();
 });
 </script>
 
