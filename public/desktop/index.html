@@ -1,0 +1,3767 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ONS Química — Sistema de gestión</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Inter', system-ui, sans-serif; background: #F1F5F9; color: #0F172A; }
+
+/* ─── SIDEBAR ─── */
+.sidebar {
+  position: fixed; left: 0; top: 0; bottom: 0; width: 220px;
+  background: #1E3A5F; display: flex; flex-direction: column; z-index: 100;
+}
+.sb-logo {
+  padding: 20px 20px 18px; border-bottom: 1px solid rgba(255,255,255,0.1);
+  display: flex; align-items: center; gap: 10px; flex-shrink: 0;
+}
+.sb-logo-icon {
+  width: 32px; height: 32px; background: white; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center; font-size: 16px;
+}
+.sb-logo-name { color: white; font-size: 14px; font-weight: 700; }
+.sb-logo-sub { color: rgba(255,255,255,0.5); font-size: 10px; margin-top: 1px; }
+.sb-nav { flex: 1; padding: 10px 0; overflow-y: auto; }
+.sb-nav::-webkit-scrollbar { display: none; }
+.sb-item {
+  display: flex; align-items: center; gap: 10px; padding: 11px 20px;
+  color: rgba(255,255,255,0.65); cursor: pointer; font-size: 13px; font-weight: 500;
+  border-left: 3px solid transparent; transition: all 0.15s; user-select: none;
+}
+.sb-item:hover { background: rgba(255,255,255,0.08); color: white; }
+.sb-item.active { background: rgba(255,255,255,0.12); color: white; border-left-color: #2E86AB; }
+.sb-icon { font-size: 15px; width: 20px; text-align: center; flex-shrink: 0; }
+.sb-footer {
+  padding: 16px 20px; border-top: 1px solid rgba(255,255,255,0.1);
+  display: flex; align-items: center; gap: 10px; flex-shrink: 0;
+}
+.sb-avatar {
+  width: 34px; height: 34px; border-radius: 8px;
+  background: linear-gradient(135deg,#2E86AB,#1E3A5F);
+  display: flex; align-items: center; justify-content: center;
+  color: white; font-size: 13px; font-weight: 700; flex-shrink: 0;
+  border: 2px solid rgba(255,255,255,0.2);
+}
+.sb-user-name { color: white; font-size: 13px; font-weight: 600; }
+.sb-user-role { color: rgba(255,255,255,0.5); font-size: 11px; }
+
+/* ─── TOPBAR ─── */
+.topbar {
+  position: fixed; left: 220px; top: 0; right: 0; height: 64px;
+  background: white; border-bottom: 1px solid #E2E8F0;
+  display: flex; align-items: center; padding: 0 28px;
+  gap: 12px; z-index: 100; box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+}
+.tb-back {
+  width: 34px; height: 34px; border-radius: 8px; background: #F1F5F9;
+  border: 1px solid #E2E8F0; cursor: pointer; font-size: 16px;
+  display: none; align-items: center; justify-content: center;
+  color: #1E3A5F; flex-shrink: 0;
+}
+.tb-back.visible { display: flex; }
+.tb-title { font-size: 17px; font-weight: 700; color: #0F172A; flex: 1; }
+.tb-sub { font-size: 12px; color: #94A3B8; font-weight: 400; margin-left: 8px; }
+.tb-bell {
+  width: 36px; height: 36px; border-radius: 8px; background: #F1F5F9;
+  border: 1px solid #E2E8F0; display: flex; align-items: center;
+  justify-content: center; font-size: 15px; cursor: pointer; position: relative;
+}
+.tb-notif-dot {
+  position: absolute; top: -4px; right: -4px;
+  min-width: 18px; height: 18px; padding: 0 4px;
+  background: #C0392B; border-radius: 20px; border: 2px solid white;
+  font-size: 10px; font-weight: 700; color: white;
+  display: flex; align-items: center; justify-content: center;
+}
+.tb-avatar {
+  width: 36px; height: 36px; border-radius: 8px;
+  background: linear-gradient(135deg,#2E86AB,#1E3A5F);
+  display: flex; align-items: center; justify-content: center;
+  color: white; font-size: 14px; font-weight: 700; cursor: pointer;
+}
+
+/* ─── MAIN CONTENT ─── */
+.main {
+  margin-left: 220px; margin-top: 64px;
+  min-height: calc(100vh - 64px); padding: 28px;
+}
+
+/* ─── SCREENS ─── */
+.dscreen { display: none; }
+.dscreen.active { display: block; }
+
+/* ─── PAGE HEADER ─── */
+.page-header { margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between; }
+.page-title { font-size: 22px; font-weight: 700; color: #0F172A; }
+.page-sub { font-size: 13px; color: #94A3B8; margin-top: 3px; }
+
+/* ─── KPI CARDS ─── */
+.kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+.kpi-card {
+  background: white; border-radius: 12px; padding: 20px;
+  border: 1px solid #E2E8F0; border-top: 3px solid currentColor;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+}
+.kpi-label { font-size: 12px; color: #64748B; font-weight: 500; margin-bottom: 8px; }
+.kpi-value { font-size: 26px; font-weight: 700; color: #0F172A; line-height: 1; }
+.kpi-delta { font-size: 12px; color: #94A3B8; margin-top: 6px; }
+.kpi-delta.up { color: #27AE60; }
+.kpi-delta.down { color: #C0392B; }
+
+/* ─── CONTENT GRID ─── */
+.content-grid { display: grid; grid-template-columns: 1fr 340px; gap: 20px; margin-bottom: 24px; }
+.content-grid.full { grid-template-columns: 1fr; }
+
+/* ─── CARDS ─── */
+.card {
+  background: white; border-radius: 12px; border: 1px solid #E2E8F0;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05); overflow: hidden;
+}
+.card-header {
+  padding: 16px 20px; border-bottom: 1px solid #F1F5F9;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.card-title { font-size: 14px; font-weight: 600; color: #0F172A; }
+.card-action { font-size: 12px; color: #2E86AB; cursor: pointer; }
+.card-body { padding: 20px; }
+
+/* ─── TABLE ─── */
+.dt { width: 100%; border-collapse: collapse; }
+.dt th {
+  text-align: left; padding: 10px 16px; font-size: 11px; font-weight: 600;
+  color: #64748B; text-transform: uppercase; letter-spacing: 0.05em;
+  border-bottom: 1px solid #F1F5F9; background: #F8FAFC;
+}
+.dt td { padding: 13px 16px; font-size: 13px; border-bottom: 1px solid #F8FAFC; vertical-align: middle; }
+.dt tr:last-child td { border-bottom: none; }
+.dt tr:hover td { background: #F8FAFC; }
+.dt .mono { font-family: monospace; font-size: 12px; font-weight: 700; color: #2E86AB; }
+
+/* ─── BADGE ─── */
+.badge { font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 20px; white-space: nowrap; display: inline-flex; }
+.badge-green { background: #DCFCE7; color: #15803D; }
+.badge-yellow { background: #FEF3C7; color: #92400E; }
+.badge-red { background: #FEE2E2; color: #C0392B; }
+.badge-blue { background: #EFF6FF; color: #2E86AB; }
+.badge-gray { background: #F1F5F9; color: #64748B; }
+
+/* ─── BUTTONS ─── */
+.btn {
+  padding: 9px 18px; border-radius: 8px; font-size: 13px; font-weight: 600;
+  cursor: pointer; border: none; font-family: inherit; display: inline-flex;
+  align-items: center; gap: 6px; transition: opacity 0.15s;
+}
+.btn:hover { opacity: 0.88; }
+.btn-primary { background: #1E3A5F; color: white; }
+.btn-accent { background: #2E86AB; color: white; }
+.btn-success { background: #27AE60; color: white; }
+.btn-danger { background: white; color: #C0392B; border: 1px solid #FECACA; }
+.btn-ghost { background: #F1F5F9; color: #1E3A5F; border: 1px solid #E2E8F0; }
+.btn-sm { padding: 6px 12px; font-size: 12px; }
+
+/* ─── FORM ─── */
+.form-panel { max-width: 720px; }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.form-full { grid-column: 1 / -1; }
+.form-group { margin-bottom: 16px; }
+.form-label { font-size: 12px; font-weight: 500; color: #64748B; display: block; margin-bottom: 5px; }
+.form-input {
+  width: 100%; padding: 10px 14px; border-radius: 8px; border: 1px solid #E2E8F0;
+  font-size: 14px; background: #F8FAFC; outline: none; font-family: inherit;
+  transition: border-color 0.15s;
+}
+.form-input:focus { border-color: #2E86AB; background: white; }
+.form-select { appearance: none; }
+.form-actions { display: flex; gap: 10px; margin-top: 24px; }
+
+/* ─── ALERT LIST ─── */
+.alert-row {
+  display: flex; gap: 12px; padding: 12px 0;
+  border-bottom: 1px solid #F8FAFC; align-items: flex-start;
+}
+.alert-row:last-child { border-bottom: none; }
+.alert-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 5px; }
+
+/* ─── TOAST ─── */
+#toast {
+  position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%);
+  background: #1E3A5F; color: white; padding: 11px 22px; border-radius: 20px;
+  font-size: 13px; font-weight: 500; z-index: 9999; opacity: 0;
+  transition: opacity 0.2s; pointer-events: none; white-space: nowrap;
+}
+
+/* ─── CONFIRM MODAL ─── */
+.confirm-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.45);
+  z-index: 10000; display: flex; align-items: center; justify-content: center;
+}
+.confirm-box {
+  background: white; border-radius: 16px; padding: 28px 28px 20px;
+  width: 380px; box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+}
+.confirm-title { font-size: 16px; font-weight: 700; color: #0F172A; margin-bottom: 8px; }
+.confirm-msg { font-size: 14px; color: #64748B; margin-bottom: 24px; line-height: 1.5; }
+.confirm-actions { display: flex; gap: 10px; justify-content: flex-end; }
+
+/* ─── SWITCH ─── */
+.switch {
+  width: 40px; height: 24px; border-radius: 12px; background: #CBD5E1;
+  position: relative; cursor: pointer; flex-shrink: 0;
+}
+.switch.on { background: #27AE60; }
+.switch-knob {
+  position: absolute; top: 3px; left: 3px; width: 18px; height: 18px;
+  border-radius: 50%; background: white; transition: left 0.15s;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+.switch.on .switch-knob { left: 19px; }
+
+/* ─── CONFIG ─── */
+.cfg-nav-item {
+  padding: 10px 16px; font-size: 13px; font-weight: 500; cursor: pointer;
+  color: #64748B; transition: background 0.15s, color 0.15s;
+}
+.cfg-nav-item:hover { background: #F1F5F9; color: #1E3A5F; }
+.cfg-nav-item.active { background: #EFF6FF; color: #1E3A5F; font-weight: 600; border-right: 3px solid #2E86AB; }
+.cfg-toggle-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 0; border-bottom: 1px solid #F1F5F9; gap: 16px;
+}
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.form-group { display: flex; flex-direction: column; gap: 6px; }
+.form-label { font-size: 12px; font-weight: 600; color: #64748B; text-transform: uppercase; letter-spacing: 0.04em; }
+.form-input {
+  border: 1px solid #E2E8F0; border-radius: 8px; padding: 9px 12px;
+  font-size: 14px; font-family: inherit; color: #1E293B;
+  background: #FAFAFA; outline: none; transition: border 0.15s;
+}
+.form-input:focus { border-color: #2E86AB; background: white; }
+.btn-sm { padding: 6px 12px; font-size: 12px; }
+.cfg-panel .form-grid { padding: 20px; }
+.cfg-panel .cfg-toggle-row { padding: 14px 20px; }
+.cfg-panel .cfg-toggle-row:last-child { border-bottom: none; }
+
+/* ─── TABS ─── */
+.tab-bar { display: flex; gap: 4px; margin-bottom: 16px; border-bottom: 1px solid #E2E8F0; }
+.tab-btn {
+  padding: 8px 18px; font-size: 13px; font-weight: 500; border: none;
+  background: none; cursor: pointer; color: #64748B; font-family: inherit;
+  border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.15s;
+}
+.tab-btn.active { color: #1E3A5F; border-bottom-color: #1E3A5F; font-weight: 600; }
+.tab-btn:hover:not(.active) { color: #0F172A; }
+
+/* ─── MOBILE TOGGLE ─── */
+.mobile-toggle {
+  position: fixed; bottom: 20px; right: 20px; z-index: 9000;
+  background: #2E86AB; color: white; border: none; border-radius: 12px;
+  padding: 10px 18px; font-size: 13px; font-weight: 600; cursor: pointer;
+  box-shadow: 0 4px 16px rgba(46,134,171,0.4); font-family: inherit;
+  display: flex; align-items: center; gap: 8px;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+.spinning { display:inline-block; animation: spin 0.7s linear infinite; }
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="sb-logo" style="justify-content:center;">
+    <img src="/logo.png" alt="ONS Química" style="height:90px;width:auto;object-fit:contain;" />
+  </div>
+  <div class="sb-nav">
+    <div class="sb-item active" data-section="dashboard" onclick="showSection('dashboard')"><span class="sb-icon">📊</span>Dashboard</div>
+    <div class="sb-item" data-section="ventas" onclick="showSection('ventas')"><span class="sb-icon">🛒</span>Ventas</div>
+    <div class="sb-item" data-section="stock" onclick="showSection('stock')"><span class="sb-icon">🏭</span>Stock</div>
+    <div class="sb-item" data-section="clientes" onclick="showSection('clientes')"><span class="sb-icon">👥</span>Clientes</div>
+    <div class="sb-item" data-section="productos" onclick="showSection('productos')"><span class="sb-icon">📦</span>Productos</div>
+    <div class="sb-item" data-section="formulas" onclick="showSection('formulas')"><span class="sb-icon">🧪</span>Fórmulas</div>
+    <div class="sb-item" data-section="reportes" onclick="showSection('reportes')"><span class="sb-icon">📈</span>Reportes</div>
+    <div class="sb-item" data-section="tienda" onclick="showSection('tienda')"><span class="sb-icon">🏪</span>Tienda</div>
+    <div class="sb-item" data-section="usuarios" onclick="showSection('usuarios')"><span class="sb-icon">👤</span>Usuarios</div>
+    <div class="sb-item" data-section="config" onclick="showSection('config')"><span class="sb-icon">⚙️</span>Configuración</div>
+  </div>
+  <div class="sb-footer">
+    <div class="sb-avatar">H</div>
+    <div>
+      <div class="sb-user-name">Hugo</div>
+      <div class="sb-user-role">Administrador</div>
+    </div>
+  </div>
+</div>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <button class="tb-back" id="tb-back" onclick="goBack()">←</button>
+  <div>
+    <div class="tb-title" id="tb-title">Dashboard</div>
+  </div>
+  <div style="flex:1;"></div>
+  <div style="position:relative;" id="notif-wrapper">
+    <div class="tb-bell" id="tb-bell-btn" onclick="toggleNotifPanel()">🔔<div class="tb-notif-dot" id="notif-badge" style="display:none;"></div></div>
+    <div id="notif-panel" style="display:none;position:absolute;top:44px;right:0;width:320px;background:white;border-radius:12px;border:1px solid #E2E8F0;box-shadow:0 8px 24px rgba(0,0,0,0.12);z-index:500;overflow:hidden;">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid #F1F5F9;">
+        <span style="font-size:14px;font-weight:700;color:#0F172A;">Notificaciones</span>
+        <button class="btn btn-ghost btn-sm" onclick="marcarLeidas()">Marcar leídas</button>
+      </div>
+      <div id="notif-list" style="max-height:360px;overflow-y:auto;"></div>
+    </div>
+  </div>
+  <div class="tb-avatar">H</div>
+</div>
+
+<!-- MAIN CONTENT -->
+<div class="main">
+
+  <!-- ══════════════ DASHBOARD ══════════════ -->
+  <div class="dscreen active" id="dscreen-dashboard">
+    <div class="page-header">
+      <div>
+        <div class="page-title">Dashboard</div>
+        <div class="page-sub">Junio 2026 · Actualizado hace 8 minutos</div>
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="syncDashboard(this)">🔄 Actualizar</button>
+    </div>
+
+    <!-- KPIs -->
+    <div class="kpi-grid">
+      <div class="kpi-card" style="color:#2E86AB;">
+        <div class="kpi-label">Ventas del mes</div>
+        <div class="kpi-value">$284.500</div>
+        <div class="kpi-delta up">▲ 12% vs mes anterior</div>
+      </div>
+      <div class="kpi-card" style="color:#27AE60;">
+        <div class="kpi-label">Órdenes este mes</div>
+        <div class="kpi-value">47</div>
+        <div class="kpi-delta up">▲ 5 más que mayo</div>
+      </div>
+      <div class="kpi-card" style="color:#E67E22;">
+        <div class="kpi-label">Stock crítico</div>
+        <div class="kpi-value">2</div>
+        <div class="kpi-delta down">productos bajo mínimo</div>
+      </div>
+      <div class="kpi-card" style="color:#8B5CF6;">
+        <div class="kpi-label">Clientes activos</div>
+        <div class="kpi-value">34</div>
+        <div class="kpi-delta up">▲ 3 nuevos este mes</div>
+      </div>
+    </div>
+
+    <!-- Grilla principal -->
+    <div class="content-grid">
+      <!-- Últimas ventas -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Últimas ventas</span>
+          <span class="card-action" onclick="showSection('ventas')">Ver todas →</span>
+        </div>
+        <table class="dt">
+          <thead>
+            <tr>
+              <th>#Orden</th><th>Cliente</th><th>Fecha</th><th>Ítems</th><th>Total</th><th>Estado</th>
+            </tr>
+          </thead>
+          <tbody id="dash-sales-body">
+            <tr>
+              <td><span class="mono">#4521</span><br><span style="font-size:10px;color:#94A3B8;">🌐 Online</span></td>
+              <td style="font-weight:500;">Distribuidora Norte</td>
+              <td style="color:#64748B;">10/06/2026</td>
+              <td style="color:#64748B;">2</td>
+              <td style="font-weight:700;">$6.000</td>
+              <td><span class="badge badge-green">Pagado</span></td>
+            </tr>
+            <tr>
+              <td><span class="mono">#4520</span><br><span style="font-size:10px;color:#94A3B8;">🛍 Manual</span></td>
+              <td style="font-weight:500;">Supermercado El Ahorro</td>
+              <td style="color:#64748B;">10/06/2026</td>
+              <td style="color:#64748B;">1</td>
+              <td style="font-weight:700;">$11.400</td>
+              <td><span class="badge badge-green">Pagado</span></td>
+            </tr>
+            <tr>
+              <td><span class="mono">#4519</span><br><span style="font-size:10px;color:#94A3B8;">🌐 Online</span></td>
+              <td style="font-weight:500;">Laura Martínez</td>
+              <td style="color:#64748B;">09/06/2026</td>
+              <td style="color:#64748B;">2</td>
+              <td style="font-weight:700;">$2.850</td>
+              <td><span class="badge badge-green">Pagado</span></td>
+            </tr>
+            <tr>
+              <td><span class="mono">#4517</span><br><span style="font-size:10px;color:#94A3B8;">🌐 Online</span></td>
+              <td style="font-weight:500;">Ana García</td>
+              <td style="color:#64748B;">08/06/2026</td>
+              <td style="color:#64748B;">1</td>
+              <td style="font-weight:700;">$3.910</td>
+              <td><span class="badge badge-yellow">Pendiente</span></td>
+            </tr>
+            <tr>
+              <td><span class="mono">#4516</span><br><span style="font-size:10px;color:#94A3B8;">🌐 Online</span></td>
+              <td style="font-weight:500;">Distribuidora Norte</td>
+              <td style="color:#64748B;">07/06/2026</td>
+              <td style="color:#64748B;">3</td>
+              <td style="font-weight:700;">$18.400</td>
+              <td><span class="badge badge-green">Pagado</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Panel derecho -->
+      <div style="display:flex;flex-direction:column;gap:16px;">
+        <!-- Alertas -->
+        <div class="card">
+          <div class="card-header"><span class="card-title">⚠️ Alertas</span></div>
+          <div class="card-body" style="padding:12px 16px;">
+            <div class="alert-row">
+              <div class="alert-dot" style="background:#C0392B;"></div>
+              <div>
+                <div style="font-size:13px;font-weight:500;">Stock crítico: Cera Pisos</div>
+                <div style="font-size:11px;color:#94A3B8;">0 unidades disponibles</div>
+              </div>
+            </div>
+            <div class="alert-row">
+              <div class="alert-dot" style="background:#E67E22;"></div>
+              <div>
+                <div style="font-size:13px;font-weight:500;">Stock bajo: Lavandina 5L</div>
+                <div style="font-size:11px;color:#94A3B8;">3 unidades — mínimo 10</div>
+              </div>
+            </div>
+            <div class="alert-row">
+              <div class="alert-dot" style="background:#2E86AB;"></div>
+              <div>
+                <div style="font-size:13px;font-weight:500;">Sync pendiente: Tiendanube</div>
+                <div style="font-size:11px;color:#94A3B8;">2 productos sin sincronizar</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Acciones rápidas -->
+        <div class="card">
+          <div class="card-header"><span class="card-title">Acciones rápidas</span></div>
+          <div class="card-body" style="padding:12px 16px;display:flex;flex-direction:column;gap:8px;">
+            <button class="btn btn-primary" style="width:100%;justify-content:center;" onclick="showSection('ventas-nuevo')">🛒 Nueva venta</button>
+            <button class="btn btn-ghost" style="width:100%;justify-content:center;" onclick="showSection('stock-carga')">📦 Registrar ingreso</button>
+            <button class="btn btn-ghost" style="width:100%;justify-content:center;" onclick="showSection('clientes-nuevo')">👥 Nuevo cliente</button>
+          </div>
+        </div>
+
+        <!-- Top productos -->
+        <div class="card">
+          <div class="card-header"><span class="card-title">Top productos</span></div>
+          <div class="card-body" style="padding:8px 0;">
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 16px;border-bottom:1px solid #F8FAFC;">
+              <div style="font-size:13px;font-weight:500;">🧴 Lavandina 5L</div>
+              <div style="font-size:13px;font-weight:700;color:#1E3A5F;">$48.200</div>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 16px;border-bottom:1px solid #F8FAFC;">
+              <div style="font-size:13px;font-weight:500;">🍋 Detergente Limón</div>
+              <div style="font-size:13px;font-weight:700;color:#1E3A5F;">$31.600</div>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 16px;">
+              <div style="font-size:13px;font-weight:500;">🌸 Suavizante Floral</div>
+              <div style="font-size:13px;font-weight:700;color:#1E3A5F;">$24.300</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ══════════════ VENTAS ══════════════ -->
+  <div class="dscreen" id="dscreen-ventas">
+    <div class="page-header">
+      <div>
+        <div class="page-title">Ventas</div>
+        <div class="page-sub" id="d-ventas-sub">10 órdenes en total</div>
+      </div>
+      <button class="btn btn-primary" onclick="showSection('ventas-nuevo')">+ Nueva venta</button>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="tab-bar" style="border:none;margin:0;">
+          <button class="tab-btn active" onclick="activateDTab(this,'todas')">Todas</button>
+          <button class="tab-btn" onclick="activateDTab(this,'online tn')">Online TN</button>
+          <button class="tab-btn" onclick="activateDTab(this,'manuales')">Manuales</button>
+        </div>
+      </div>
+      <table class="dt">
+        <thead>
+          <tr>
+            <th>#Orden</th><th>Canal</th><th>Cliente</th><th>Fecha</th><th>Ítems</th><th>Total</th><th>Estado</th><th></th>
+          </tr>
+        </thead>
+        <tbody id="d-ventas-body">
+          <tr data-filter="online tn">
+            <td><span class="mono">#4521</span></td>
+            <td><span class="badge badge-blue">🌐 Online</span></td>
+            <td style="font-weight:500;">Distribuidora Norte</td>
+            <td style="color:#64748B;">10/06/2026</td>
+            <td style="color:#64748B;">2</td>
+            <td style="font-weight:700;">$6.000</td>
+            <td><span class="badge badge-green">Pagado</span></td>
+          </tr>
+          <tr data-filter="manuales">
+            <td><span class="mono">#4520</span></td>
+            <td><span class="badge badge-gray">🛍 Manual</span></td>
+            <td style="font-weight:500;">Supermercado El Ahorro</td>
+            <td style="color:#64748B;">10/06/2026</td>
+            <td style="color:#64748B;">1</td>
+            <td style="font-weight:700;">$11.400</td>
+            <td><span class="badge badge-green">Pagado</span></td>
+          </tr>
+          <tr data-filter="online tn">
+            <td><span class="mono">#4519</span></td>
+            <td><span class="badge badge-blue">🌐 Online</span></td>
+            <td style="font-weight:500;">Laura Martínez</td>
+            <td style="color:#64748B;">09/06/2026</td>
+            <td style="color:#64748B;">2</td>
+            <td style="font-weight:700;">$2.850</td>
+            <td><span class="badge badge-green">Pagado</span></td>
+          </tr>
+          <tr data-filter="online tn">
+            <td><span class="mono">#4517</span></td>
+            <td><span class="badge badge-blue">🌐 Online</span></td>
+            <td style="font-weight:500;">Ana García</td>
+            <td style="color:#64748B;">08/06/2026</td>
+            <td style="color:#64748B;">1</td>
+            <td style="font-weight:700;">$3.910</td>
+            <td><span class="badge badge-yellow">Pendiente</span></td>
+          </tr>
+          <tr data-filter="online tn">
+            <td><span class="mono">#4516</span></td>
+            <td><span class="badge badge-blue">🌐 Online</span></td>
+            <td style="font-weight:500;">Distribuidora Norte</td>
+            <td style="color:#64748B;">07/06/2026</td>
+            <td style="color:#64748B;">3</td>
+            <td style="font-weight:700;">$18.400</td>
+            <td><span class="badge badge-green">Pagado</span></td>
+          </tr>
+          <tr data-filter="manuales">
+            <td><span class="mono">#4515</span></td>
+            <td><span class="badge badge-gray">🛍 Manual</span></td>
+            <td style="font-weight:500;">Sin cliente</td>
+            <td style="color:#64748B;">06/06/2026</td>
+            <td style="color:#64748B;">2</td>
+            <td style="font-weight:700;">$7.200</td>
+            <td><span class="badge badge-green">Pagado</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+
+  <!-- ══════════════ STOCK ══════════════ -->
+  <div class="dscreen" id="dscreen-stock">
+    <div class="page-header">
+      <div>
+        <div class="page-title">Stock</div>
+        <div class="page-sub">34 productos en catálogo</div>
+      </div>
+      <button class="btn btn-primary" onclick="showSection('stock-carga')">📦 Cargar mercadería</button>
+    </div>
+
+    <div class="kpi-grid">
+      <div class="kpi-card" style="color:#2E86AB;">
+        <div class="kpi-label">Total SKUs</div>
+        <div class="kpi-value">34</div>
+        <div class="kpi-delta">productos registrados</div>
+      </div>
+      <div class="kpi-card" style="color:#27AE60;">
+        <div class="kpi-label">Normal</div>
+        <div class="kpi-value">28</div>
+        <div class="kpi-delta up">sobre el mínimo</div>
+      </div>
+      <div class="kpi-card" style="color:#E67E22;">
+        <div class="kpi-label">Crítico</div>
+        <div class="kpi-value">4</div>
+        <div class="kpi-delta down">bajo el mínimo</div>
+      </div>
+      <div class="kpi-card" style="color:#C0392B;">
+        <div class="kpi-label">Sin stock</div>
+        <div class="kpi-value">2</div>
+        <div class="kpi-delta down">0 unidades</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header" style="gap:12px;flex-wrap:wrap;">
+        <div class="tab-bar" style="border:none;margin:0;flex:1;">
+          <button class="tab-btn active" onclick="activateDTab(this,'todos')">Todos</button>
+          <button class="tab-btn" onclick="activateDTab(this,'crítico')">🔴 Crítico</button>
+          <button class="tab-btn" onclick="activateDTab(this,'bajo')">🟡 Bajo</button>
+          <button class="tab-btn" onclick="activateDTab(this,'normal')">🟢 Normal</button>
+          <button class="tab-btn" onclick="activateDTab(this,'sin stock')">⚫ Sin stock</button>
+        </div>
+        <div style="position:relative;">
+          <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:13px;">🔍</span>
+          <input oninput="searchDStock(this)" placeholder="Buscar producto..." style="padding:8px 12px 8px 32px;border-radius:8px;border:1px solid #E2E8F0;font-size:13px;background:#F8FAFC;outline:none;font-family:inherit;width:220px;">
+        </div>
+      </div>
+      <table class="dt" id="d-stock-table">
+        <thead>
+          <tr>
+            <th>Producto</th><th>Categoría</th><th>Stock actual</th><th>Mínimo</th><th>Estado</th>
+          </tr>
+        </thead>
+        <tbody id="d-stock-body">
+          <tr data-filter="crítico" data-name="lavandina 5l">
+            <td><span style="font-size:15px;margin-right:8px;">🧴</span><span style="font-weight:500;">Lavandina 5L</span></td>
+            <td style="color:#64748B;">Limpieza</td>
+            <td style="font-size:15px;font-weight:700;color:#C0392B;">8</td>
+            <td style="color:#64748B;">10</td>
+            <td><span class="badge badge-red">Crítico</span></td>
+          </tr>
+          <tr data-filter="crítico" data-name="suavizante floral 1l">
+            <td><span style="font-size:15px;margin-right:8px;">🌸</span><span style="font-weight:500;">Suavizante Floral 1L</span></td>
+            <td style="color:#64748B;">Limpieza</td>
+            <td style="font-size:15px;font-weight:700;color:#C0392B;">3</td>
+            <td style="color:#64748B;">10</td>
+            <td><span class="badge badge-red">Crítico</span></td>
+          </tr>
+          <tr data-filter="normal" data-name="detergente limón 1l">
+            <td><span style="font-size:15px;margin-right:8px;">🍋</span><span style="font-weight:500;">Detergente Limón 1L</span></td>
+            <td style="color:#64748B;">Limpieza</td>
+            <td style="font-size:15px;font-weight:700;color:#27AE60;">45</td>
+            <td style="color:#64748B;">10</td>
+            <td><span class="badge badge-green">Normal</span></td>
+          </tr>
+          <tr data-filter="bajo" data-name="jabón líquido manos">
+            <td><span style="font-size:15px;margin-right:8px;">🫧</span><span style="font-weight:500;">Jabón Líquido Manos</span></td>
+            <td style="color:#64748B;">Limpieza</td>
+            <td style="font-size:15px;font-weight:700;color:#E67E22;">9</td>
+            <td style="color:#64748B;">10</td>
+            <td><span class="badge badge-yellow">Bajo</span></td>
+          </tr>
+          <tr data-filter="normal" data-name="limpiavidrios 500ml">
+            <td><span style="font-size:15px;margin-right:8px;">🪟</span><span style="font-weight:500;">Limpiavidrios 500ml</span></td>
+            <td style="color:#64748B;">Limpieza</td>
+            <td style="font-size:15px;font-weight:700;color:#27AE60;">31</td>
+            <td style="color:#64748B;">10</td>
+            <td><span class="badge badge-green">Normal</span></td>
+          </tr>
+          <tr data-filter="normal" data-name="desengrasante ind. 5l">
+            <td><span style="font-size:15px;margin-right:8px;">🔧</span><span style="font-weight:500;">Desengrasante Ind. 5L</span></td>
+            <td style="color:#64748B;">Industrial</td>
+            <td style="font-size:15px;font-weight:700;color:#27AE60;">22</td>
+            <td style="color:#64748B;">5</td>
+            <td><span class="badge badge-green">Normal</span></td>
+          </tr>
+          <tr data-filter="sin stock" data-name="cera pisos 1l">
+            <td><span style="font-size:15px;margin-right:8px;">✨</span><span style="font-weight:500;color:#94A3B8;">Cera Pisos 1L</span></td>
+            <td style="color:#94A3B8;">Industrial</td>
+            <td style="font-size:15px;font-weight:700;color:#94A3B8;">0</td>
+            <td style="color:#64748B;">5</td>
+            <td><span class="badge badge-gray">Sin stock</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+
+  <!-- ══════════════ CLIENTES ══════════════ -->
+  <div class="dscreen" id="dscreen-clientes">
+    <div class="page-header">
+      <div>
+        <div class="page-title">Clientes</div>
+        <div class="page-sub">127 clientes registrados</div>
+      </div>
+      <button class="btn btn-primary" onclick="showSection('clientes-nuevo')">+ Nuevo cliente</button>
+    </div>
+
+    <div class="card">
+      <div class="card-header" style="gap:12px;flex-wrap:wrap;">
+        <div class="tab-bar" style="border:none;margin:0;flex:1;">
+          <button class="tab-btn active" onclick="activateDTab(this,'todos')">Todos</button>
+          <button class="tab-btn" onclick="activateDTab(this,'mayoristas')">Mayoristas</button>
+          <button class="tab-btn" onclick="activateDTab(this,'frecuentes')">Frecuentes</button>
+          <button class="tab-btn" onclick="activateDTab(this,'minoristas')">Minoristas</button>
+        </div>
+        <div style="position:relative;">
+          <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:13px;">🔍</span>
+          <input oninput="searchClientes(this.value)" placeholder="Buscar cliente..." style="padding:8px 12px 8px 32px;border-radius:8px;border:1px solid #E2E8F0;font-size:13px;background:#F8FAFC;outline:none;font-family:inherit;width:220px;">
+        </div>
+      </div>
+      <table class="dt">
+        <thead>
+          <tr>
+            <th>Cliente</th><th>Tipo</th><th>Teléfono</th><th>Total compras</th><th>Última compra</th><th>Acción</th>
+          </tr>
+        </thead>
+        <tbody id="d-clientes-body">
+          <tr data-filter="mayoristas">
+            <td>
+              <div style="display:flex;align-items:center;gap:10px;">
+                <div style="width:34px;height:34px;border-radius:8px;background:#DBEAFE;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#1D4ED8;flex-shrink:0;">DN</div>
+                <span style="font-weight:500;">Distribuidora Norte</span>
+              </div>
+            </td>
+            <td><span class="badge badge-blue">Mayorista</span></td>
+            <td style="color:#64748B;">011 4532-8901</td>
+            <td style="font-weight:700;">$284.000</td>
+            <td style="color:#64748B;">10/06/2026</td>
+            <td><button class="btn btn-ghost btn-sm" onclick="showSection('clientes-detalle')">Ver detalle</button></td>
+          </tr>
+          <tr data-filter="mayoristas">
+            <td>
+              <div style="display:flex;align-items:center;gap:10px;">
+                <div style="width:34px;height:34px;border-radius:8px;background:#DBEAFE;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#1D4ED8;flex-shrink:0;">SE</div>
+                <span style="font-weight:500;">Supermercado El Ahorro</span>
+              </div>
+            </td>
+            <td><span class="badge badge-blue">Mayorista</span></td>
+            <td style="color:#64748B;">011 4287-3344</td>
+            <td style="font-weight:700;">$198.000</td>
+            <td style="color:#64748B;">10/06/2026</td>
+            <td><button class="btn btn-ghost btn-sm" onclick="showSection('clientes-detalle')">Ver detalle</button></td>
+          </tr>
+          <tr data-filter="frecuentes">
+            <td>
+              <div style="display:flex;align-items:center;gap:10px;">
+                <div style="width:34px;height:34px;border-radius:8px;background:#F3E8FF;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#6B21A8;flex-shrink:0;">LM</div>
+                <span style="font-weight:500;">Laura Martínez</span>
+              </div>
+            </td>
+            <td><span class="badge" style="background:#F3E8FF;color:#6B21A8;">Frecuente</span></td>
+            <td style="color:#64748B;">011 15-6234-8800</td>
+            <td style="font-weight:700;">$18.000</td>
+            <td style="color:#64748B;">09/06/2026</td>
+            <td><button class="btn btn-ghost btn-sm" onclick="showSection('clientes-detalle')">Ver detalle</button></td>
+          </tr>
+          <tr data-filter="frecuentes">
+            <td>
+              <div style="display:flex;align-items:center;gap:10px;">
+                <div style="width:34px;height:34px;border-radius:8px;background:#F3E8FF;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#6B21A8;flex-shrink:0;">AG</div>
+                <span style="font-weight:500;">Ana García</span>
+              </div>
+            </td>
+            <td><span class="badge" style="background:#F3E8FF;color:#6B21A8;">Frecuente</span></td>
+            <td style="color:#64748B;">011 15-7890-1122</td>
+            <td style="font-weight:700;">$9.400</td>
+            <td style="color:#64748B;">08/06/2026</td>
+            <td><button class="btn btn-ghost btn-sm" onclick="showSection('clientes-detalle')">Ver detalle</button></td>
+          </tr>
+          <tr data-filter="minoristas">
+            <td>
+              <div style="display:flex;align-items:center;gap:10px;">
+                <div style="width:34px;height:34px;border-radius:8px;background:#DCFCE7;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#15803D;flex-shrink:0;">CR</div>
+                <span style="font-weight:500;">Carlos Rodríguez</span>
+              </div>
+            </td>
+            <td><span class="badge badge-green">Minorista</span></td>
+            <td style="color:#64748B;">011 15-3344-5566</td>
+            <td style="font-weight:700;">$4.200</td>
+            <td style="color:#64748B;">05/06/2026</td>
+            <td><button class="btn btn-ghost btn-sm" onclick="showSection('clientes-detalle')">Ver detalle</button></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+
+  <!-- ══════════════ PRODUCTOS ══════════════ -->
+  <div class="dscreen" id="dscreen-productos">
+    <div class="page-header">
+      <div>
+        <div class="page-title">Productos</div>
+        <div class="page-sub">34 productos en catálogo</div>
+      </div>
+      <button class="btn btn-primary" onclick="showSection('productos-nuevo')">+ Nuevo producto</button>
+    </div>
+
+    <div class="card">
+      <div class="card-header" style="gap:12px;flex-wrap:wrap;">
+        <div class="tab-bar" style="border:none;margin:0;flex:1;">
+          <button class="tab-btn active" onclick="activateDTab(this,'todos')">Todos</button>
+          <button class="tab-btn" onclick="activateDTab(this,'limpieza')">Limpieza</button>
+          <button class="tab-btn" onclick="activateDTab(this,'industrial')">Industrial</button>
+        </div>
+        <div style="position:relative;">
+          <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:13px;">🔍</span>
+          <input oninput="searchProductos(this.value)" placeholder="Buscar producto..." style="padding:8px 12px 8px 32px;border-radius:8px;border:1px solid #E2E8F0;font-size:13px;background:#F8FAFC;outline:none;font-family:inherit;width:220px;">
+        </div>
+      </div>
+      <table class="dt">
+        <thead>
+          <tr>
+            <th>Producto</th><th>Categoría</th><th>Precio venta</th><th>Costo</th><th>Margen</th><th>Estado</th><th>Acción</th>
+          </tr>
+        </thead>
+        <tbody id="d-productos-body">
+          <tr data-filter="limpieza">
+            <td>
+              <div style="display:flex;align-items:center;gap:10px;">
+                <div style="width:36px;height:36px;border-radius:8px;background:#F1F5F9;display:flex;align-items:center;justify-content:center;font-size:18px;">🧴</div>
+                <span style="font-weight:500;">Lavandina 5L</span>
+              </div>
+            </td>
+            <td style="color:#64748B;">Limpieza</td>
+            <td style="font-weight:700;">$1.200</td>
+            <td style="color:#64748B;">$850</td>
+            <td style="font-weight:600;color:#E67E22;">29,2%</td>
+            <td><span class="badge badge-green">Activo</span></td>
+            <td><button class="btn btn-ghost btn-sm" onclick="showSection('productos-editar')">✏️ Editar</button></td>
+          </tr>
+          <tr data-filter="limpieza">
+            <td>
+              <div style="display:flex;align-items:center;gap:10px;">
+                <div style="width:36px;height:36px;border-radius:8px;background:#F1F5F9;display:flex;align-items:center;justify-content:center;font-size:18px;">🌸</div>
+                <span style="font-weight:500;">Suavizante Floral 1L</span>
+              </div>
+            </td>
+            <td style="color:#64748B;">Limpieza</td>
+            <td style="font-weight:700;">$950</td>
+            <td style="color:#64748B;">$620</td>
+            <td style="font-weight:600;color:#E67E22;">34,7%</td>
+            <td><span class="badge badge-green">Activo</span></td>
+            <td><button class="btn btn-ghost btn-sm" onclick="showSection('productos-editar')">✏️ Editar</button></td>
+          </tr>
+          <tr data-filter="limpieza">
+            <td>
+              <div style="display:flex;align-items:center;gap:10px;">
+                <div style="width:36px;height:36px;border-radius:8px;background:#F1F5F9;display:flex;align-items:center;justify-content:center;font-size:18px;">🍋</div>
+                <span style="font-weight:500;">Detergente Limón 1L</span>
+              </div>
+            </td>
+            <td style="color:#64748B;">Limpieza</td>
+            <td style="font-weight:700;">$680</td>
+            <td style="color:#64748B;">$420</td>
+            <td style="font-weight:600;color:#27AE60;">38,2%</td>
+            <td><span class="badge badge-green">Activo</span></td>
+            <td><button class="btn btn-ghost btn-sm" onclick="showSection('productos-editar')">✏️ Editar</button></td>
+          </tr>
+          <tr data-filter="limpieza">
+            <td>
+              <div style="display:flex;align-items:center;gap:10px;">
+                <div style="width:36px;height:36px;border-radius:8px;background:#F1F5F9;display:flex;align-items:center;justify-content:center;font-size:18px;">🪟</div>
+                <span style="font-weight:500;">Limpiavidrios 500ml</span>
+              </div>
+            </td>
+            <td style="color:#64748B;">Limpieza</td>
+            <td style="font-weight:700;">$480</td>
+            <td style="color:#64748B;">$280</td>
+            <td style="font-weight:600;color:#27AE60;">41,7%</td>
+            <td><span class="badge badge-green">Activo</span></td>
+            <td><button class="btn btn-ghost btn-sm" onclick="showSection('productos-editar')">✏️ Editar</button></td>
+          </tr>
+          <tr data-filter="limpieza">
+            <td>
+              <div style="display:flex;align-items:center;gap:10px;">
+                <div style="width:36px;height:36px;border-radius:8px;background:#F1F5F9;display:flex;align-items:center;justify-content:center;font-size:18px;">🫧</div>
+                <span style="font-weight:500;">Jabón Líquido Manos</span>
+              </div>
+            </td>
+            <td style="color:#64748B;">Limpieza</td>
+            <td style="font-weight:700;">$390</td>
+            <td style="color:#64748B;">$220</td>
+            <td style="font-weight:600;color:#27AE60;">43,6%</td>
+            <td><span class="badge badge-green">Activo</span></td>
+            <td><button class="btn btn-ghost btn-sm" onclick="showSection('productos-editar')">✏️ Editar</button></td>
+          </tr>
+          <tr data-filter="industrial">
+            <td>
+              <div style="display:flex;align-items:center;gap:10px;">
+                <div style="width:36px;height:36px;border-radius:8px;background:#F1F5F9;display:flex;align-items:center;justify-content:center;font-size:18px;">🔧</div>
+                <span style="font-weight:500;">Desengrasante Ind. 5L</span>
+              </div>
+            </td>
+            <td style="color:#64748B;">Industrial</td>
+            <td style="font-weight:700;">$2.100</td>
+            <td style="color:#64748B;">$1.200</td>
+            <td style="font-weight:600;color:#27AE60;">42,9%</td>
+            <td><span class="badge badge-green">Activo</span></td>
+            <td><button class="btn btn-ghost btn-sm" onclick="showSection('productos-editar')">✏️ Editar</button></td>
+          </tr>
+          <tr data-filter="industrial">
+            <td>
+              <div style="display:flex;align-items:center;gap:10px;">
+                <div style="width:36px;height:36px;border-radius:8px;background:#F8FAFC;display:flex;align-items:center;justify-content:center;font-size:18px;opacity:0.5;">✨</div>
+                <span style="font-weight:500;color:#94A3B8;">Cera Pisos 1L</span>
+              </div>
+            </td>
+            <td style="color:#94A3B8;">Industrial</td>
+            <td style="font-weight:700;color:#94A3B8;">$1.450</td>
+            <td style="color:#94A3B8;">$890</td>
+            <td style="color:#94A3B8;">38,6%</td>
+            <td><span class="badge badge-gray">Inactivo</span></td>
+            <td><button class="btn btn-ghost btn-sm" onclick="showSection('productos-editar')">✏️ Editar</button></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+
+  <!-- ══════════════ FÓRMULAS ══════════════ -->
+  <div class="dscreen" id="dscreen-formulas">
+    <div class="page-header">
+      <div>
+        <div class="page-title">Fórmulas & Costeo</div>
+        <div class="page-sub">Calculadora de márgenes por producto</div>
+      </div>
+      <button class="btn btn-ghost" onclick="showSection('formulas-componentes')">⚙️ Gestionar insumos</button>
+    </div>
+
+    <div class="content-grid">
+      <!-- Izquierda: componentes -->
+      <div style="display:flex;flex-direction:column;gap:16px;">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Seleccionar producto</span>
+          </div>
+          <div class="card-body">
+            <select style="width:100%;padding:10px 14px;border-radius:8px;border:1px solid #E2E8F0;font-size:14px;background:#F8FAFC;font-family:inherit;outline:none;">
+              <option>Lavandina 5L — $850 costo</option>
+              <option>Detergente Limón 1L — $420 costo</option>
+              <option>Desengrasante Ind. 5L — $1.200 costo</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Componentes</span>
+            <span class="card-action" onclick="showSection('formulas-componentes')">Ver todos →</span>
+          </div>
+          <table class="dt">
+            <thead>
+              <tr><th>Insumo</th><th>Cantidad</th><th>Precio unit.</th><th>Subtotal</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="font-weight:500;">Hipoclorito 10%</td>
+                <td style="color:#64748B;">4,5 L</td>
+                <td style="color:#64748B;">$120</td>
+                <td style="font-weight:600;">$540</td>
+              </tr>
+              <tr>
+                <td style="font-weight:500;">Envase HDPE 5L</td>
+                <td style="color:#64748B;">1 u.</td>
+                <td style="color:#64748B;">$185</td>
+                <td style="font-weight:600;">$185</td>
+              </tr>
+              <tr>
+                <td style="font-weight:500;">Tapa con precinto</td>
+                <td style="color:#64748B;">1 u.</td>
+                <td style="color:#64748B;">$28</td>
+                <td style="font-weight:600;">$28</td>
+              </tr>
+              <tr>
+                <td style="font-weight:500;">Etiqueta + Fragancia + Agua</td>
+                <td style="color:#64748B;">varios</td>
+                <td style="color:#64748B;">—</td>
+                <td style="font-weight:600;">$97</td>
+              </tr>
+            </tbody>
+          </table>
+          <div style="padding:16px 20px;background:#FFFBEB;display:flex;justify-content:space-between;align-items:center;border-top:1px solid #FEF3C7;">
+            <div>
+              <div style="font-size:12px;color:#92400E;font-weight:500;margin-bottom:2px;">Costo total</div>
+              <div style="font-size:26px;font-weight:700;color:#0F172A;">$850</div>
+            </div>
+            <div style="text-align:right;">
+              <div style="font-size:12px;color:#94A3B8;margin-bottom:2px;">Precio actual $1.200</div>
+              <div style="font-size:32px;font-weight:700;color:#E67E22;">29,2%</div>
+              <div style="font-size:12px;color:#E67E22;">margen 🟡 aceptable</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Derecha: simulador -->
+      <div style="display:flex;flex-direction:column;gap:16px;">
+        <div class="card">
+          <div class="card-header"><span class="card-title">🎯 Simulador de margen</span></div>
+          <div class="card-body">
+            <div style="display:flex;justify-content:space-between;margin-bottom:10px;">
+              <span style="font-size:13px;color:#64748B;">Margen objetivo</span>
+              <span id="sim-pct" style="font-size:14px;font-weight:700;color:#1E3A5F;">40%</span>
+            </div>
+            <input id="sim-slider" type="range" min="5" max="80" value="40" style="width:100%;accent-color:#2E86AB;" oninput="updateSimulator(this.value)">
+            <div style="display:flex;justify-content:space-between;font-size:11px;color:#CBD5E1;margin-top:4px;margin-bottom:16px;"><span>5%</span><span>80%</span></div>
+            <div style="background:#EFF6FF;border-radius:10px;padding:20px;text-align:center;margin-bottom:16px;">
+              <div style="font-size:12px;color:#2E86AB;margin-bottom:6px;">Precio sugerido</div>
+              <div id="sim-price" style="font-size:36px;font-weight:700;color:#1E3A5F;">$1.417</div>
+              <div id="sim-color" style="font-size:12px;color:#E67E22;margin-top:4px;">margen 🟡 bueno</div>
+            </div>
+            <button class="btn btn-primary" style="width:100%;justify-content:center;" onclick="showToast('Precio actualizado en Tiendanube')">Actualizar precio en TN</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><span class="card-title">Comparativa de márgenes</span></div>
+          <div class="card-body" style="padding:8px 0;">
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 20px;border-bottom:1px solid #F8FAFC;">
+              <span style="font-size:13px;font-weight:500;">🧴 Lavandina 5L</span>
+              <span style="font-size:13px;font-weight:700;color:#E67E22;">29,2%</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 20px;border-bottom:1px solid #F8FAFC;">
+              <span style="font-size:13px;font-weight:500;">🍋 Detergente Limón 1L</span>
+              <span style="font-size:13px;font-weight:700;color:#27AE60;">38,2%</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 20px;border-bottom:1px solid #F8FAFC;">
+              <span style="font-size:13px;font-weight:500;">🔧 Desengrasante Ind. 5L</span>
+              <span style="font-size:13px;font-weight:700;color:#27AE60;">42,9%</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 20px;">
+              <span style="font-size:13px;font-weight:500;">🪟 Limpiavidrios 500ml</span>
+              <span style="font-size:13px;font-weight:700;color:#27AE60;">41,7%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ══════════════ REPORTES ══════════════ -->
+  <div class="dscreen" id="dscreen-reportes">
+    <div class="page-header">
+      <div>
+        <div class="page-title">Reportes</div>
+        <div class="page-sub">Junio 2026</div>
+      </div>
+      <select style="padding:8px 14px;border-radius:8px;border:1px solid #E2E8F0;font-size:13px;background:white;font-family:inherit;outline:none;">
+        <option>Jun 2026</option><option>May 2026</option><option>Abr 2026</option>
+      </select>
+    </div>
+
+    <!-- Tabs internos -->
+    <div class="tab-bar" style="margin-bottom:20px;">
+      <button class="tab-btn active" onclick="switchReport(this,'rep-resumen')">Resumen</button>
+      <button class="tab-btn" onclick="switchReport(this,'rep-productos')">Por producto</button>
+      <button class="tab-btn" onclick="switchReport(this,'rep-rotacion')">Rotación</button>
+      <button class="tab-btn" onclick="switchReport(this,'rep-cashflow')">Cash Flow</button>
+      <button class="tab-btn" onclick="switchReport(this,'rep-rentabilidad')">Rentabilidad</button>
+      <button class="tab-btn" onclick="switchReport(this,'rep-poderventa')">Poder de venta</button>
+    </div>
+
+    <!-- RESUMEN -->
+    <div id="rep-resumen">
+      <div class="kpi-grid">
+        <div class="kpi-card" style="color:#27AE60;">
+          <div class="kpi-label">Ingresos del mes</div>
+          <div class="kpi-value">$847k</div>
+          <div class="kpi-delta up">▲ +12% vs mayo</div>
+        </div>
+        <div class="kpi-card" style="color:#2E86AB;">
+          <div class="kpi-label">Margen promedio</div>
+          <div class="kpi-value">38,2%</div>
+          <div class="kpi-delta up">▲ +1,4 pp</div>
+        </div>
+        <div class="kpi-card" style="color:#E67E22;">
+          <div class="kpi-label">Unidades vendidas</div>
+          <div class="kpi-value">1.247</div>
+          <div class="kpi-delta">este mes</div>
+        </div>
+        <div class="kpi-card" style="color:#8B5CF6;">
+          <div class="kpi-label">Ticket promedio</div>
+          <div class="kpi-value">$6.820</div>
+          <div class="kpi-delta up">▲ +5%</div>
+        </div>
+      </div>
+
+      <div class="content-grid">
+        <!-- Gráfico barras -->
+        <div class="card">
+          <div class="card-header"><span class="card-title">Ingresos vs Costos — 2026</span></div>
+          <div class="card-body">
+            <div style="display:flex;align-items:flex-end;gap:10px;height:160px;padding-bottom:4px;">
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:2px;">
+                <div style="width:100%;background:#1E3A5F;opacity:0.4;border-radius:4px 4px 0 0;height:55%;"></div>
+                <div style="width:100%;background:#E2E8F0;border-radius:4px 4px 0 0;height:30%;"></div>
+                <div style="font-size:11px;color:#94A3B8;margin-top:4px;">Ene</div>
+              </div>
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:2px;">
+                <div style="width:100%;background:#1E3A5F;opacity:0.5;border-radius:4px 4px 0 0;height:52%;"></div>
+                <div style="width:100%;background:#E2E8F0;border-radius:4px 4px 0 0;height:28%;"></div>
+                <div style="font-size:11px;color:#94A3B8;margin-top:4px;">Feb</div>
+              </div>
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:2px;">
+                <div style="width:100%;background:#1E3A5F;opacity:0.6;border-radius:4px 4px 0 0;height:63%;"></div>
+                <div style="width:100%;background:#E2E8F0;border-radius:4px 4px 0 0;height:33%;"></div>
+                <div style="font-size:11px;color:#94A3B8;margin-top:4px;">Mar</div>
+              </div>
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:2px;">
+                <div style="width:100%;background:#1E3A5F;opacity:0.65;border-radius:4px 4px 0 0;height:61%;"></div>
+                <div style="width:100%;background:#E2E8F0;border-radius:4px 4px 0 0;height:32%;"></div>
+                <div style="font-size:11px;color:#94A3B8;margin-top:4px;">Abr</div>
+              </div>
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:2px;">
+                <div style="width:100%;background:#1E3A5F;opacity:0.75;border-radius:4px 4px 0 0;height:70%;"></div>
+                <div style="width:100%;background:#E2E8F0;border-radius:4px 4px 0 0;height:38%;"></div>
+                <div style="font-size:11px;color:#94A3B8;margin-top:4px;">May</div>
+              </div>
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:2px;">
+                <div style="width:100%;background:#2E86AB;border-radius:4px 4px 0 0;height:76%;"></div>
+                <div style="width:100%;background:#E2E8F0;border-radius:4px 4px 0 0;height:40%;"></div>
+                <div style="font-size:11px;color:#2E86AB;font-weight:700;margin-top:4px;">Jun</div>
+              </div>
+            </div>
+            <div style="display:flex;gap:16px;margin-top:12px;font-size:12px;color:#64748B;">
+              <div style="display:flex;align-items:center;gap:6px;"><div style="width:12px;height:12px;border-radius:3px;background:#1E3A5F;"></div>Ingresos</div>
+              <div style="display:flex;align-items:center;gap:6px;"><div style="width:12px;height:12px;border-radius:3px;background:#E2E8F0;"></div>Costos</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Top productos -->
+        <div class="card">
+          <div class="card-header"><span class="card-title">Top productos</span></div>
+          <table class="dt">
+            <thead>
+              <tr><th>#</th><th>Producto</th><th>Unidades</th><th>Total</th><th>Margen</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="font-weight:700;color:#2E86AB;">1</td>
+                <td style="font-weight:500;">🧴 Lavandina 5L</td>
+                <td style="color:#64748B;">237 u.</td>
+                <td style="font-weight:700;">$284k</td>
+                <td style="color:#E67E22;font-weight:600;">29,2%</td>
+              </tr>
+              <tr>
+                <td style="font-weight:700;color:#2E86AB;">2</td>
+                <td style="font-weight:500;">🍋 Detergente Limón 1L</td>
+                <td style="color:#64748B;">291 u.</td>
+                <td style="font-weight:700;">$198k</td>
+                <td style="color:#27AE60;font-weight:600;">38,2%</td>
+              </tr>
+              <tr>
+                <td style="font-weight:700;color:#2E86AB;">3</td>
+                <td style="font-weight:500;">🔧 Desengrasante Ind. 5L</td>
+                <td style="color:#64748B;">90 u.</td>
+                <td style="font-weight:700;">$189k</td>
+                <td style="color:#27AE60;font-weight:600;">42,9%</td>
+              </tr>
+              <tr>
+                <td style="font-weight:700;color:#2E86AB;">4</td>
+                <td style="font-weight:500;">🌸 Suavizante Floral 1L</td>
+                <td style="color:#64748B;">178 u.</td>
+                <td style="font-weight:700;">$169k</td>
+                <td style="color:#E67E22;font-weight:600;">34,7%</td>
+              </tr>
+              <tr>
+                <td style="font-weight:700;color:#2E86AB;">5</td>
+                <td style="font-weight:500;">🪟 Limpiavidrios 500ml</td>
+                <td style="color:#64748B;">213 u.</td>
+                <td style="font-weight:700;">$102k</td>
+                <td style="color:#27AE60;font-weight:600;">41,7%</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- POR PRODUCTO -->
+    <div id="rep-productos" style="display:none;">
+      <div class="card">
+        <div class="card-header"><span class="card-title">Ventas por producto — Junio 2026</span></div>
+        <table class="dt">
+          <thead>
+            <tr><th>Producto</th><th>Unidades</th><th>Ingreso total</th><th>Costo total</th><th>Ganancia</th><th>Margen</th></tr>
+          </thead>
+          <tbody>
+            <tr><td style="font-weight:500;">🧴 Lavandina 5L</td><td>237</td><td style="font-weight:700;">$284.400</td><td style="color:#64748B;">$201.450</td><td style="color:#27AE60;font-weight:600;">$82.950</td><td style="color:#E67E22;font-weight:600;">29,2%</td></tr>
+            <tr><td style="font-weight:500;">🍋 Detergente Limón 1L</td><td>291</td><td style="font-weight:700;">$197.880</td><td style="color:#64748B;">$122.220</td><td style="color:#27AE60;font-weight:600;">$75.660</td><td style="color:#27AE60;font-weight:600;">38,2%</td></tr>
+            <tr><td style="font-weight:500;">🔧 Desengrasante Ind. 5L</td><td>90</td><td style="font-weight:700;">$189.000</td><td style="color:#64748B;">$108.000</td><td style="color:#27AE60;font-weight:600;">$81.000</td><td style="color:#27AE60;font-weight:600;">42,9%</td></tr>
+            <tr><td style="font-weight:500;">🌸 Suavizante Floral 1L</td><td>178</td><td style="font-weight:700;">$169.100</td><td style="color:#64748B;">$110.360</td><td style="color:#27AE60;font-weight:600;">$58.740</td><td style="color:#E67E22;font-weight:600;">34,7%</td></tr>
+            <tr><td style="font-weight:500;">🪟 Limpiavidrios 500ml</td><td>213</td><td style="font-weight:700;">$102.240</td><td style="color:#64748B;">$59.640</td><td style="color:#27AE60;font-weight:600;">$42.600</td><td style="color:#27AE60;font-weight:600;">41,7%</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ROTACIÓN -->
+    <div id="rep-rotacion" style="display:none;">
+      <div class="card">
+        <div class="card-header"><span class="card-title">Rotación de stock — Junio 2026</span></div>
+        <table class="dt">
+          <thead><tr><th>Producto</th><th>Stock inicial</th><th>Vendido</th><th>Stock actual</th><th>Rotación</th></tr></thead>
+          <tbody>
+            <tr><td style="font-weight:500;">🧴 Lavandina 5L</td><td>245</td><td>237</td><td style="color:#C0392B;font-weight:700;">8</td><td><span class="badge badge-red">Alta</span></td></tr>
+            <tr><td style="font-weight:500;">🍋 Detergente Limón 1L</td><td>336</td><td>291</td><td style="color:#27AE60;font-weight:700;">45</td><td><span class="badge badge-green">Alta</span></td></tr>
+            <tr><td style="font-weight:500;">🌸 Suavizante Floral 1L</td><td>181</td><td>178</td><td style="color:#C0392B;font-weight:700;">3</td><td><span class="badge badge-red">Alta</span></td></tr>
+            <tr><td style="font-weight:500;">🪟 Limpiavidrios 500ml</td><td>244</td><td>213</td><td style="color:#27AE60;font-weight:700;">31</td><td><span class="badge badge-green">Alta</span></td></tr>
+            <tr><td style="font-weight:500;">🔧 Desengrasante Ind. 5L</td><td>112</td><td>90</td><td style="color:#27AE60;font-weight:700;">22</td><td><span class="badge badge-yellow">Media</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- CASH FLOW -->
+    <div id="rep-cashflow" style="display:none;">
+      <div class="kpi-grid">
+        <div class="kpi-card" style="color:#27AE60;"><div class="kpi-label">Ingresos jun.</div><div class="kpi-value">$847k</div><div class="kpi-delta up">▲ +12%</div></div>
+        <div class="kpi-card" style="color:#C0392B;"><div class="kpi-label">Costos jun.</div><div class="kpi-value">$523k</div><div class="kpi-delta down">▼ +8%</div></div>
+        <div class="kpi-card" style="color:#2E86AB;"><div class="kpi-label">Ganancia neta</div><div class="kpi-value">$324k</div><div class="kpi-delta up">▲ +18%</div></div>
+        <div class="kpi-card" style="color:#8B5CF6;"><div class="kpi-label">Margen neto</div><div class="kpi-value">38,2%</div><div class="kpi-delta up">▲ +1,4 pp</div></div>
+      </div>
+      <div class="card content-grid full">
+        <div class="card-header"><span class="card-title">Flujo mensual 2026</span></div>
+        <table class="dt">
+          <thead><tr><th>Mes</th><th>Ingresos</th><th>Costos</th><th>Ganancia</th><th>Margen</th></tr></thead>
+          <tbody>
+            <tr><td>Enero</td><td>$612k</td><td style="color:#64748B;">$378k</td><td style="color:#27AE60;font-weight:600;">$234k</td><td style="color:#27AE60;">38,2%</td></tr>
+            <tr><td>Febrero</td><td>$589k</td><td style="color:#64748B;">$362k</td><td style="color:#27AE60;font-weight:600;">$227k</td><td style="color:#27AE60;">38,5%</td></tr>
+            <tr><td>Marzo</td><td>$724k</td><td style="color:#64748B;">$447k</td><td style="color:#27AE60;font-weight:600;">$277k</td><td style="color:#27AE60;">38,3%</td></tr>
+            <tr><td>Abril</td><td>$698k</td><td style="color:#64748B;">$431k</td><td style="color:#27AE60;font-weight:600;">$267k</td><td style="color:#27AE60;">38,3%</td></tr>
+            <tr><td>Mayo</td><td>$756k</td><td style="color:#64748B;">$468k</td><td style="color:#27AE60;font-weight:600;">$288k</td><td style="color:#27AE60;">38,1%</td></tr>
+            <tr style="background:#EFF6FF;"><td style="font-weight:700;color:#2E86AB;">Junio</td><td style="font-weight:700;">$847k</td><td style="color:#64748B;">$523k</td><td style="color:#27AE60;font-weight:700;">$324k</td><td style="color:#27AE60;font-weight:700;">38,2%</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- RENTABILIDAD -->
+    <div id="rep-rentabilidad" style="display:none;">
+      <div class="card">
+        <div class="card-header"><span class="card-title">Rentabilidad por producto — Junio 2026</span></div>
+        <table class="dt">
+          <thead><tr><th>Producto</th><th>Precio venta</th><th>Costo</th><th>Margen $</th><th>Margen %</th><th>Calificación</th></tr></thead>
+          <tbody>
+            <tr><td style="font-weight:500;">🔧 Desengrasante Ind. 5L</td><td>$2.100</td><td style="color:#64748B;">$1.200</td><td style="font-weight:700;color:#27AE60;">$900</td><td style="font-weight:700;color:#27AE60;">42,9%</td><td><span class="badge badge-green">Excelente</span></td></tr>
+            <tr><td style="font-weight:500;">🫧 Jabón Líquido Manos</td><td>$390</td><td style="color:#64748B;">$220</td><td style="font-weight:700;color:#27AE60;">$170</td><td style="font-weight:700;color:#27AE60;">43,6%</td><td><span class="badge badge-green">Excelente</span></td></tr>
+            <tr><td style="font-weight:500;">🪟 Limpiavidrios 500ml</td><td>$480</td><td style="color:#64748B;">$280</td><td style="font-weight:700;color:#27AE60;">$200</td><td style="font-weight:700;color:#27AE60;">41,7%</td><td><span class="badge badge-green">Excelente</span></td></tr>
+            <tr><td style="font-weight:500;">🍋 Detergente Limón 1L</td><td>$680</td><td style="color:#64748B;">$420</td><td style="font-weight:700;color:#27AE60;">$260</td><td style="font-weight:700;color:#27AE60;">38,2%</td><td><span class="badge badge-green">Bueno</span></td></tr>
+            <tr><td style="font-weight:500;">🌸 Suavizante Floral 1L</td><td>$950</td><td style="color:#64748B;">$620</td><td style="font-weight:600;color:#E67E22;">$330</td><td style="font-weight:600;color:#E67E22;">34,7%</td><td><span class="badge badge-yellow">Aceptable</span></td></tr>
+            <tr><td style="font-weight:500;">🧴 Lavandina 5L</td><td>$1.200</td><td style="color:#64748B;">$850</td><td style="font-weight:600;color:#E67E22;">$350</td><td style="font-weight:600;color:#E67E22;">29,2%</td><td><span class="badge badge-yellow">Aceptable</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- PODER DE VENTA -->
+    <div id="rep-poderventa" style="display:none;">
+      <div class="kpi-grid" id="pv-kpis"></div>
+      <div class="content-grid" style="margin-bottom:20px;">
+        <div class="card" style="overflow-x:auto;">
+          <div class="card-header" style="flex-wrap:wrap;gap:8px;">
+            <span class="card-title">💪 Poder de venta por producto</span>
+            <div style="display:flex;gap:4px;flex-wrap:wrap;">
+              <button class="pv-filter tab-btn active" onclick="filterPV(this,'todos')">Todos</button>
+              <button class="pv-filter tab-btn" onclick="filterPV(this,'critico')">🔴 Crítico</button>
+              <button class="pv-filter tab-btn" onclick="filterPV(this,'reponer')">🟠 Reponer</button>
+              <button class="pv-filter tab-btn" onclick="filterPV(this,'normal')">🟢 Normal</button>
+              <button class="pv-filter tab-btn" onclick="filterPV(this,'exceso')">🔵 Exceso</button>
+            </div>
+          </div>
+          <table class="dt" id="pv-table">
+            <thead>
+              <tr>
+                <th onclick="sortPV(this,'nombre')" style="cursor:pointer;user-select:none;">Producto <span class="sort-arrow"></span></th>
+                <th onclick="sortPV(this,'stock_actual')" style="cursor:pointer;user-select:none;">Stock <span class="sort-arrow"></span></th>
+                <th onclick="sortPV(this,'precio_venta')" style="cursor:pointer;user-select:none;">Precio <span class="sort-arrow"></span></th>
+                <th onclick="sortPV(this,'precio_costo')" style="cursor:pointer;user-select:none;">Costo <span class="sort-arrow"></span></th>
+                <th onclick="sortPV(this,'margen_pct')" style="cursor:pointer;user-select:none;">Margen % <span class="sort-arrow"></span></th>
+                <th onclick="sortPV(this,'potencial')" style="cursor:pointer;user-select:none;">Potencial <span class="sort-arrow">▼</span></th>
+                <th onclick="sortPV(this,'dias_cobertura')" style="cursor:pointer;user-select:none;">Días cob. <span class="sort-arrow"></span></th>
+                <th onclick="sortPV(this,'rotacion')" style="cursor:pointer;user-select:none;">Rotación <span class="sort-arrow"></span></th>
+                <th>Estado</th>
+              </tr>
+            </thead>
+            <tbody id="pv-tbody"></tbody>
+          </table>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">Alertas</span></div>
+          <div id="pv-alerts" style="padding:8px 16px;"></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Concentración de potencial — principio 80/20</span></div>
+        <div class="card-body"><canvas id="pv-pareto-chart" style="max-height:220px;"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ══════════════ NUEVA VENTA ══════════════ -->
+  <div class="dscreen" id="dscreen-ventas-nuevo">
+    <div class="page-header">
+      <div>
+        <div class="page-title">Nueva venta</div>
+        <div class="page-sub">Completá los datos del pedido</div>
+      </div>
+      <button class="btn btn-primary" onclick="guardarVenta()">💾 Guardar venta</button>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 340px;gap:20px;align-items:start;">
+
+      <!-- Columna izquierda -->
+      <div style="display:flex;flex-direction:column;gap:16px;">
+
+        <!-- Datos generales -->
+        <div class="card" style="padding:20px;">
+          <div style="font-size:13px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:.05em;margin-bottom:16px;">Datos generales</div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Cliente</label>
+              <select class="form-input" id="nv-cliente">
+                <option value="">— Seleccionar cliente —</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Canal</label>
+              <select class="form-input" id="nv-canal">
+                <option value="Manual">✍️ Manual</option>
+                <option value="TN">🌐 Online TN</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Método de pago</label>
+              <select class="form-input" id="nv-pago">
+                <option value="Efectivo">💵 Efectivo</option>
+                <option value="Transferencia">🏦 Transferencia</option>
+                <option value="Débito">💳 Débito</option>
+                <option value="Crédito">💳 Crédito</option>
+                <option value="MercadoPago">📱 MercadoPago</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Estado</label>
+              <select class="form-input" id="nv-estado">
+                <option value="Pagado">✅ Pagado</option>
+                <option value="Pendiente">⏳ Pendiente</option>
+              </select>
+            </div>
+            <div class="form-group" style="grid-column:1/-1;">
+              <label class="form-label">Notas (opcional)</label>
+              <input class="form-input" id="nv-notas" placeholder="Ej: entregar en depósito, factura A..." />
+            </div>
+          </div>
+        </div>
+
+        <!-- Agregar productos -->
+        <div class="card" style="padding:20px;">
+          <div style="font-size:13px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:.05em;margin-bottom:16px;">Productos</div>
+          <div style="display:flex;gap:10px;margin-bottom:16px;">
+            <select class="form-input" id="nv-prod-sel" style="flex:1;">
+              <option value="">— Elegir producto —</option>
+            </select>
+            <input class="form-input" id="nv-prod-cant" type="number" min="1" value="1" style="width:80px;text-align:center;" />
+            <button class="btn btn-primary" onclick="nvAgregarItem()">+ Agregar</button>
+          </div>
+          <table class="dt" id="nv-items-table">
+            <thead><tr><th>Producto</th><th>Precio unit.</th><th>Cantidad</th><th>Subtotal</th><th></th></tr></thead>
+            <tbody id="nv-items-body">
+              <tr id="nv-empty-row"><td colspan="5" style="text-align:center;color:#94A3B8;padding:24px;">Todavía no agregaste productos</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+
+      <!-- Columna derecha — Resumen -->
+      <div class="card" style="padding:20px;position:sticky;top:80px;">
+        <div style="font-size:13px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:.05em;margin-bottom:16px;">Resumen</div>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <div style="display:flex;justify-content:space-between;font-size:13px;color:#64748B;">
+            <span>Subtotal</span><span id="nv-subtotal">$0</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:13px;color:#64748B;">
+            <span>IVA (21%)</span><span id="nv-iva">$0</span>
+          </div>
+          <div style="border-top:2px solid #1E3A5F;padding-top:10px;display:flex;justify-content:space-between;font-size:18px;font-weight:700;color:#1E3A5F;">
+            <span>Total</span><span id="nv-total">$0</span>
+          </div>
+        </div>
+        <div style="margin-top:20px;display:flex;flex-direction:column;gap:8px;">
+          <div style="font-size:12px;color:#94A3B8;" id="nv-resumen-items">0 productos agregados</div>
+          <button class="btn btn-primary" style="width:100%;" onclick="guardarVenta()">💾 Guardar venta</button>
+          <button class="btn btn-ghost" style="width:100%;" onclick="goBack()">Cancelar</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══════════════ CARGAR STOCK ══════════════ -->
+  <div class="dscreen" id="dscreen-stock-carga">
+    <div class="page-header">
+      <div>
+        <div class="page-title">Registrar ingreso de stock</div>
+        <div class="page-sub">Actualizá el inventario con mercadería nueva</div>
+      </div>
+      <button class="btn btn-primary" onclick="guardarStock()">💾 Guardar ingreso</button>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 300px;gap:20px;align-items:start;">
+
+      <!-- Formulario -->
+      <div class="card" style="padding:20px;">
+        <div style="font-size:13px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:.05em;margin-bottom:16px;">Datos del ingreso</div>
+        <div class="form-grid">
+          <div class="form-group" style="grid-column:1/-1;">
+            <label class="form-label">Producto</label>
+            <select class="form-input" id="sc-producto" onchange="scActualizarProducto()">
+              <option value="">— Seleccionar producto —</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Cantidad a ingresar</label>
+            <input class="form-input" id="sc-cantidad" type="number" min="1" value="1" placeholder="Ej: 50" oninput="scActualizarResumen()" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Costo unitario</label>
+            <input class="form-input" id="sc-costo" type="number" min="0" placeholder="Ej: 850" oninput="scActualizarResumen()" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Proveedor</label>
+            <input class="form-input" id="sc-proveedor" placeholder="Ej: Distribuidora Química SA" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Fecha de ingreso</label>
+            <input class="form-input" id="sc-fecha" type="date" />
+          </div>
+          <div class="form-group" style="grid-column:1/-1;">
+            <label class="form-label">Notas (opcional)</label>
+            <input class="form-input" id="sc-notas" placeholder="Ej: lote marzo 2026, factura B-00312..." />
+          </div>
+        </div>
+      </div>
+
+      <!-- Panel resumen -->
+      <div style="display:flex;flex-direction:column;gap:16px;">
+        <div class="card" style="padding:20px;">
+          <div style="font-size:13px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:.05em;margin-bottom:16px;">Estado actual</div>
+          <div id="sc-estado-panel" style="color:#94A3B8;font-size:13px;">Seleccioná un producto para ver su estado.</div>
+        </div>
+        <div class="card" style="padding:20px;">
+          <div style="font-size:13px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:.05em;margin-bottom:16px;">Resumen del ingreso</div>
+          <div style="display:flex;flex-direction:column;gap:10px;">
+            <div style="display:flex;justify-content:space-between;font-size:13px;color:#64748B;">
+              <span>Stock antes</span><span id="sc-stock-antes">—</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:13px;color:#27AE60;font-weight:600;">
+              <span>+ Ingreso</span><span id="sc-stock-ingreso">—</span>
+            </div>
+            <div style="border-top:2px solid #1E3A5F;padding-top:10px;display:flex;justify-content:space-between;font-size:16px;font-weight:700;color:#1E3A5F;">
+              <span>Stock después</span><span id="sc-stock-despues">—</span>
+            </div>
+            <div style="margin-top:4px;display:flex;justify-content:space-between;font-size:13px;color:#64748B;">
+              <span>Costo total</span><span id="sc-costo-total">—</span>
+            </div>
+          </div>
+          <div style="margin-top:16px;display:flex;flex-direction:column;gap:8px;">
+            <button class="btn btn-primary" style="width:100%;" onclick="guardarStock()">💾 Guardar ingreso</button>
+            <button class="btn btn-ghost" style="width:100%;" onclick="goBack()">Cancelar</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══════════════ DETALLE CLIENTE ══════════════ -->
+  <div class="dscreen" id="dscreen-clientes-detalle">
+    <div class="page-header">
+      <div id="cd-header-info">
+        <div class="page-title" id="cd-nombre">Cliente</div>
+        <div class="page-sub" id="cd-tipo">—</div>
+      </div>
+      <div style="display:flex;gap:10px;">
+        <button class="btn btn-ghost" onclick="showSection('clientes-editar')">✏️ Editar</button>
+        <button class="btn btn-primary" onclick="showSection('ventas-nuevo')">+ Nueva venta</button>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:300px 1fr;gap:20px;align-items:start;">
+
+      <!-- Columna izquierda — Datos del cliente -->
+      <div style="display:flex;flex-direction:column;gap:16px;">
+
+        <div class="card" style="padding:20px;">
+          <div style="text-align:center;margin-bottom:20px;">
+            <div id="cd-avatar" style="width:64px;height:64px;border-radius:14px;background:#DBEAFE;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:700;color:#1D4ED8;margin:0 auto 10px;"></div>
+            <div style="font-size:18px;font-weight:700;" id="cd-nombre2">—</div>
+            <div id="cd-badge-tipo" style="margin-top:6px;"></div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:12px;border-top:1px solid #F1F5F9;padding-top:16px;">
+            <div>
+              <div style="font-size:11px;font-weight:700;color:#94A3B8;text-transform:uppercase;letter-spacing:.05em;">Teléfono</div>
+              <div style="font-size:14px;margin-top:3px;" id="cd-telefono">—</div>
+            </div>
+            <div>
+              <div style="font-size:11px;font-weight:700;color:#94A3B8;text-transform:uppercase;letter-spacing:.05em;">Email</div>
+              <div style="font-size:14px;margin-top:3px;" id="cd-email">—</div>
+            </div>
+            <div>
+              <div style="font-size:11px;font-weight:700;color:#94A3B8;text-transform:uppercase;letter-spacing:.05em;">Cliente desde</div>
+              <div style="font-size:14px;margin-top:3px;" id="cd-desde">—</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="padding:20px;">
+          <div style="font-size:13px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:.05em;margin-bottom:14px;">Resumen</div>
+          <div style="display:flex;flex-direction:column;gap:12px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <span style="font-size:13px;color:#64748B;">Total comprado</span>
+              <span style="font-weight:700;font-size:15px;" id="cd-total">—</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <span style="font-size:13px;color:#64748B;">Cantidad de órdenes</span>
+              <span style="font-weight:700;" id="cd-ordenes">—</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <span style="font-size:13px;color:#64748B;">Última compra</span>
+              <span style="font-size:13px;color:#64748B;" id="cd-ultima">—</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <span style="font-size:13px;color:#64748B;">Ticket promedio</span>
+              <span style="font-weight:600;" id="cd-ticket">—</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Columna derecha — Historial -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Historial de compras</span>
+        </div>
+        <table class="dt">
+          <thead>
+            <tr><th>#Orden</th><th>Canal</th><th>Fecha</th><th>Productos</th><th>Total</th><th>Estado</th></tr>
+          </thead>
+          <tbody id="cd-historial-body"></tbody>
+        </table>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══════════════ NUEVO CLIENTE ══════════════ -->
+  <div class="dscreen" id="dscreen-clientes-nuevo">
+    <div class="page-header">
+      <div>
+        <div class="page-title">Nuevo cliente</div>
+        <div class="page-sub">Completá los datos del cliente</div>
+      </div>
+      <button class="btn btn-primary" onclick="guardarCliente()">💾 Guardar cliente</button>
+    </div>
+
+    <div style="max-width:680px;">
+      <div class="card" style="padding:20px;">
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Nombre completo o razón social *</label>
+            <input class="form-input" id="cn-nombre" placeholder="Ej: Distribuidora Norte" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Tipo de cliente</label>
+            <select class="form-input" id="cn-tipo">
+              <option value="mayoristas">Mayorista</option>
+              <option value="frecuentes">Frecuente</option>
+              <option value="minoristas">Minorista</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Teléfono</label>
+            <input class="form-input" id="cn-telefono" placeholder="Ej: +54 11 4444-1111" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Email</label>
+            <input class="form-input" id="cn-email" type="email" placeholder="Ej: cliente@mail.com" />
+          </div>
+          <div class="form-group" style="grid-column:1/-1;">
+            <label class="form-label">Dirección (opcional)</label>
+            <input class="form-input" id="cn-direccion" placeholder="Ej: Av. San Martín 445, CABA" />
+          </div>
+        </div>
+        <div style="margin-top:20px;display:flex;justify-content:flex-end;gap:10px;">
+          <button class="btn btn-ghost" onclick="goBack()">Cancelar</button>
+          <button class="btn btn-primary" onclick="guardarCliente()">💾 Guardar cliente</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════ NUEVO / EDITAR PRODUCTO ══════════════ -->
+  <div class="dscreen" id="dscreen-productos-nuevo">
+    <div class="page-header">
+      <div>
+        <div class="page-title">Nuevo producto</div>
+        <div class="page-sub">Completá los datos del producto</div>
+      </div>
+      <button class="btn btn-primary" onclick="guardarProducto(false)">💾 Guardar producto</button>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 260px;gap:20px;align-items:start;">
+      <div class="card" style="padding:20px;">
+        <div class="form-grid">
+          <div class="form-group" style="grid-column:1/-1;">
+            <label class="form-label">Nombre del producto *</label>
+            <input class="form-input" id="np-nombre" placeholder="Ej: Lavandina 5L" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Emoji / ícono</label>
+            <select class="form-input" id="np-emoji">
+              <option value="🧴">🧴 Botella</option>
+              <option value="🍋">🍋 Limón</option>
+              <option value="🌸">🌸 Floral</option>
+              <option value="🫧">🫧 Jabón</option>
+              <option value="🪟">🪟 Vidrios</option>
+              <option value="🔧">🔧 Industrial</option>
+              <option value="✨">✨ Cera</option>
+              <option value="🧹">🧹 Escoba</option>
+              <option value="🧺">🧺 Canasto</option>
+              <option value="🧼">🧼 Jabón sólido</option>
+              <option value="📦">📦 Caja</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Categoría</label>
+            <select class="form-input" id="np-categoria">
+              <option value="limpieza">Limpieza</option>
+              <option value="industrial">Industrial</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Precio de venta *</label>
+            <input class="form-input" id="np-precio-venta" type="number" min="0" placeholder="Ej: 1200" oninput="npActualizarMargen()" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Precio de costo *</label>
+            <input class="form-input" id="np-precio-costo" type="number" min="0" placeholder="Ej: 850" oninput="npActualizarMargen()" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Stock mínimo</label>
+            <input class="form-input" id="np-stock-minimo" type="number" min="0" value="10" placeholder="Ej: 20" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Estado</label>
+            <select class="form-input" id="np-estado">
+              <option value="activo">Activo</option>
+              <option value="inactivo">Inactivo</option>
+            </select>
+          </div>
+        </div>
+        <div style="margin-top:20px;display:flex;justify-content:flex-end;gap:10px;">
+          <button class="btn btn-ghost" onclick="goBack()">Cancelar</button>
+          <button class="btn btn-primary" onclick="guardarProducto(false)">💾 Guardar producto</button>
+        </div>
+      </div>
+      <!-- Panel margen -->
+      <div class="card" style="padding:20px;">
+        <div style="font-size:13px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:.05em;margin-bottom:16px;">Margen estimado</div>
+        <div style="display:flex;flex-direction:column;gap:12px;">
+          <div style="display:flex;justify-content:space-between;font-size:13px;color:#64748B;">
+            <span>Precio venta</span><span id="np-m-venta">—</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:13px;color:#64748B;">
+            <span>Precio costo</span><span id="np-m-costo">—</span>
+          </div>
+          <div style="border-top:2px solid #1E3A5F;padding-top:10px;display:flex;justify-content:space-between;font-size:15px;font-weight:700;">
+            <span>Margen</span><span id="np-m-pct">—</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:13px;color:#64748B;">
+            <span>Ganancia por unidad</span><span id="np-m-gan">—</span>
+          </div>
+        </div>
+        <div id="np-m-semaforo" style="margin-top:16px;padding:10px;border-radius:8px;background:#F1F5F9;font-size:12px;text-align:center;color:#64748B;">Ingresá precios para ver el margen</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="dscreen" id="dscreen-productos-editar">
+    <div class="page-header">
+      <div>
+        <div class="page-title">Editar producto</div>
+        <div class="page-sub" id="ep-sub">—</div>
+      </div>
+      <button class="btn btn-primary" onclick="guardarProducto(true)">💾 Guardar cambios</button>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 260px;gap:20px;align-items:start;">
+      <div class="card" style="padding:20px;">
+        <div class="form-grid">
+          <div class="form-group" style="grid-column:1/-1;">
+            <label class="form-label">Nombre del producto *</label>
+            <input class="form-input" id="ep-nombre" placeholder="Ej: Lavandina 5L" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Emoji / ícono</label>
+            <select class="form-input" id="ep-emoji">
+              <option value="🧴">🧴 Botella</option>
+              <option value="🍋">🍋 Limón</option>
+              <option value="🌸">🌸 Floral</option>
+              <option value="🫧">🫧 Jabón</option>
+              <option value="🪟">🪟 Vidrios</option>
+              <option value="🔧">🔧 Industrial</option>
+              <option value="✨">✨ Cera</option>
+              <option value="🧹">🧹 Escoba</option>
+              <option value="🧺">🧺 Canasto</option>
+              <option value="🧼">🧼 Jabón sólido</option>
+              <option value="📦">📦 Caja</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Categoría</label>
+            <select class="form-input" id="ep-categoria">
+              <option value="limpieza">Limpieza</option>
+              <option value="industrial">Industrial</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Precio de venta *</label>
+            <input class="form-input" id="ep-precio-venta" type="number" min="0" oninput="epActualizarMargen()" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Precio de costo *</label>
+            <input class="form-input" id="ep-precio-costo" type="number" min="0" oninput="epActualizarMargen()" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Stock mínimo</label>
+            <input class="form-input" id="ep-stock-minimo" type="number" min="0" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Estado</label>
+            <select class="form-input" id="ep-estado">
+              <option value="activo">Activo</option>
+              <option value="inactivo">Inactivo</option>
+            </select>
+          </div>
+        </div>
+        <div style="margin-top:20px;display:flex;justify-content:flex-end;gap:10px;">
+          <button class="btn btn-ghost" onclick="goBack()">Cancelar</button>
+          <button class="btn btn-primary" onclick="guardarProducto(true)">💾 Guardar cambios</button>
+        </div>
+      </div>
+      <div class="card" style="padding:20px;">
+        <div style="font-size:13px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:.05em;margin-bottom:16px;">Margen estimado</div>
+        <div style="display:flex;flex-direction:column;gap:12px;">
+          <div style="display:flex;justify-content:space-between;font-size:13px;color:#64748B;">
+            <span>Precio venta</span><span id="ep-m-venta">—</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:13px;color:#64748B;">
+            <span>Precio costo</span><span id="ep-m-costo">—</span>
+          </div>
+          <div style="border-top:2px solid #1E3A5F;padding-top:10px;display:flex;justify-content:space-between;font-size:15px;font-weight:700;">
+            <span>Margen</span><span id="ep-m-pct">—</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:13px;color:#64748B;">
+            <span>Ganancia por unidad</span><span id="ep-m-gan">—</span>
+          </div>
+        </div>
+        <div id="ep-m-semaforo" style="margin-top:16px;padding:10px;border-radius:8px;background:#F1F5F9;font-size:12px;text-align:center;color:#64748B;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════ NUEVO USUARIO ══════════════ -->
+  <div class="dscreen" id="dscreen-usuarios-nuevo">
+    <div class="page-header">
+      <div>
+        <div class="page-title">Nuevo usuario</div>
+        <div class="page-sub">Completá los datos del usuario</div>
+      </div>
+      <button class="btn btn-primary" onclick="guardarUsuario(false)">💾 Guardar usuario</button>
+    </div>
+    <div style="max-width:680px;">
+      <div class="card" style="padding:20px;">
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Nombre *</label>
+            <input class="form-input" id="nu-nombre" placeholder="Ej: Martina" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Apellido *</label>
+            <input class="form-input" id="nu-apellido" placeholder="Ej: López" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Email *</label>
+            <input class="form-input" id="nu-email" type="email" placeholder="Ej: martina@ons.com" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Rol</label>
+            <select class="form-input" id="nu-rol">
+              <option value="Vendedor">Vendedor</option>
+              <option value="Depósito">Depósito</option>
+              <option value="Administrador">Administrador</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Contraseña *</label>
+            <input class="form-input" id="nu-password" type="password" placeholder="Mínimo 6 caracteres" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Confirmar contraseña *</label>
+            <input class="form-input" id="nu-password2" type="password" placeholder="Repetí la contraseña" />
+          </div>
+        </div>
+        <div style="margin-top:20px;display:flex;justify-content:flex-end;gap:10px;">
+          <button class="btn btn-ghost" onclick="goBack()">Cancelar</button>
+          <button class="btn btn-primary" onclick="guardarUsuario(false)">💾 Guardar usuario</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════ EDITAR USUARIO ══════════════ -->
+  <div class="dscreen" id="dscreen-usuarios-editar">
+    <div class="page-header">
+      <div>
+        <div class="page-title">Editar usuario</div>
+        <div class="page-sub" id="eu-sub">—</div>
+      </div>
+      <button class="btn btn-primary" onclick="guardarUsuario(true)">💾 Guardar cambios</button>
+    </div>
+    <div style="max-width:680px;">
+      <div class="card" style="padding:20px;">
+        <div style="display:flex;align-items:center;gap:14px;padding-bottom:20px;border-bottom:1px solid #F1F5F9;margin-bottom:20px;">
+          <div id="eu-avatar" style="width:52px;height:52px;border-radius:12px;background:#DBEAFE;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;color:#1D4ED8;"></div>
+          <div>
+            <div style="font-size:16px;font-weight:700;" id="eu-nombre-display">—</div>
+            <div style="font-size:12px;color:#94A3B8;" id="eu-rol-display">—</div>
+          </div>
+          <div style="margin-left:auto;display:flex;align-items:center;gap:10px;">
+            <span style="font-size:13px;color:#64748B;">Activo</span>
+            <div id="eu-toggle" class="switch" onclick="euToggleActivo()"><div class="switch-knob"></div></div>
+          </div>
+        </div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Nombre *</label>
+            <input class="form-input" id="eu-nombre" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Apellido *</label>
+            <input class="form-input" id="eu-apellido" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Email *</label>
+            <input class="form-input" id="eu-email" type="email" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Rol</label>
+            <select class="form-input" id="eu-rol">
+              <option value="Vendedor">Vendedor</option>
+              <option value="Depósito">Depósito</option>
+              <option value="Administrador">Administrador</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Nueva contraseña</label>
+            <input class="form-input" id="eu-password" type="password" placeholder="Dejar vacío para no cambiar" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Confirmar nueva contraseña</label>
+            <input class="form-input" id="eu-password2" type="password" placeholder="Repetí la contraseña" />
+          </div>
+        </div>
+        <div style="margin-top:20px;display:flex;justify-content:flex-end;gap:10px;">
+          <button class="btn btn-ghost" onclick="goBack()">Cancelar</button>
+          <button class="btn btn-primary" onclick="guardarUsuario(true)">💾 Guardar cambios</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════ GESTIONAR INSUMOS ══════════════ -->
+  <div class="dscreen" id="dscreen-formulas-componentes">
+    <div class="page-header">
+      <div>
+        <div class="page-title">Gestionar insumos</div>
+        <div class="page-sub">Catálogo de materias primas y componentes</div>
+      </div>
+      <button class="btn btn-primary" onclick="fcMostrarNuevo()">+ Nuevo insumo</button>
+    </div>
+
+    <!-- Formulario nuevo/editar insumo (oculto por defecto) -->
+    <div id="fc-form-panel" class="card" style="padding:20px;margin-bottom:16px;display:none;">
+      <div style="font-size:13px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:.05em;margin-bottom:16px;" id="fc-form-title">Nuevo insumo</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 140px auto;gap:12px;align-items:end;">
+        <div class="form-group" style="margin:0;">
+          <label class="form-label">Nombre *</label>
+          <input class="form-input" id="fc-nombre" placeholder="Ej: Hipoclorito 10%" />
+        </div>
+        <div class="form-group" style="margin:0;">
+          <label class="form-label">Unidad de medida</label>
+          <select class="form-input" id="fc-unidad">
+            <option value="litros">Litros</option>
+            <option value="kg">Kg</option>
+            <option value="gramos">Gramos</option>
+            <option value="unidades">Unidades</option>
+            <option value="ml">Mililitros</option>
+          </select>
+        </div>
+        <div class="form-group" style="margin:0;">
+          <label class="form-label">Costo por unidad</label>
+          <input class="form-input" id="fc-costo" type="number" min="0" placeholder="Ej: 320" />
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-primary" onclick="fcGuardarInsumo()">💾</button>
+          <button class="btn btn-ghost" onclick="fcCancelar()">✕</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Insumos disponibles</span>
+        <span style="font-size:12px;color:#94A3B8;" id="fc-count">— insumos</span>
+      </div>
+      <table class="dt">
+        <thead>
+          <tr><th>Insumo</th><th>Unidad</th><th>Costo por unidad</th><th>Acciones</th></tr>
+        </thead>
+        <tbody id="fc-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ══════════════ TIENDA ONLINE ══════════════ -->
+  <div class="dscreen" id="dscreen-tienda">
+    <div class="page-header">
+      <div>
+        <div class="page-title">Tienda Online</div>
+        <div class="page-sub">Integración Tiendanube</div>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center;">
+        <span class="badge badge-green" style="font-size:12px;padding:5px 12px;">● Conectado</span>
+        <button class="btn btn-primary" onclick="syncTiendaD(this)">🔄 Sincronizar</button>
+      </div>
+    </div>
+
+    <div class="kpi-grid">
+      <div class="kpi-card" style="color:#27AE60;">
+        <div class="kpi-label">Publicados</div>
+        <div class="kpi-value">18</div>
+        <div class="kpi-delta">productos activos en TN</div>
+      </div>
+      <div class="kpi-card" style="color:#E67E22;">
+        <div class="kpi-label">Sin publicar</div>
+        <div class="kpi-value">6</div>
+        <div class="kpi-delta down">fuera del catálogo online</div>
+      </div>
+      <div class="kpi-card" style="color:#C0392B;">
+        <div class="kpi-label">Sin foto</div>
+        <div class="kpi-value">3</div>
+        <div class="kpi-delta down">no se pueden publicar</div>
+      </div>
+      <div class="kpi-card" style="color:#64748B;">
+        <div class="kpi-label">Último sync</div>
+        <div class="kpi-value" style="font-size:22px;">8 min</div>
+        <div class="kpi-delta">hace 8 minutos</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header" style="flex-wrap:wrap;gap:8px;">
+        <div class="tab-bar" style="border:none;margin:0;flex:1;">
+          <button class="tab-btn active" onclick="activateDTab(this,'todos')">Todos</button>
+          <button class="tab-btn" onclick="activateDTab(this,'publicados')">Publicados</button>
+          <button class="tab-btn" onclick="activateDTab(this,'sin publicar')">Sin publicar</button>
+          <button class="tab-btn" onclick="activateDTab(this,'sin foto')">⚠️ Sin foto</button>
+        </div>
+      </div>
+      <table class="dt">
+        <thead>
+          <tr><th>Producto</th><th>Foto</th><th>Precio sistema</th><th>Precio TN</th><th>Stock TN</th><th>Publicado</th></tr>
+        </thead>
+        <tbody id="d-tienda-body">
+          <tr data-filter="publicados">
+            <td><span style="font-size:16px;margin-right:8px;">🧴</span><span style="font-weight:500;">Lavandina 5L</span></td>
+            <td><div style="width:36px;height:36px;border-radius:8px;background:#EFF6FF;display:flex;align-items:center;justify-content:center;font-size:18px;">🧴</div></td>
+            <td style="color:#64748B;">$1.200</td>
+            <td style="font-weight:700;">$1.299</td>
+            <td style="color:#64748B;">8 u.</td>
+            <td><div class="switch on" onclick="toggleSwitch(this)"><div class="switch-knob"></div></div></td>
+          </tr>
+          <tr data-filter="publicados">
+            <td><span style="font-size:16px;margin-right:8px;">🍋</span><span style="font-weight:500;">Detergente Limón 1L</span></td>
+            <td><div style="width:36px;height:36px;border-radius:8px;background:#FEF9C3;display:flex;align-items:center;justify-content:center;font-size:18px;">🍋</div></td>
+            <td style="color:#64748B;">$680</td>
+            <td style="font-weight:700;">$720</td>
+            <td style="color:#64748B;">22 u.</td>
+            <td><div class="switch on" onclick="toggleSwitch(this)"><div class="switch-knob"></div></div></td>
+          </tr>
+          <tr data-filter="publicados">
+            <td><span style="font-size:16px;margin-right:8px;">🪟</span><span style="font-weight:500;">Limpiavidrios 500ml</span></td>
+            <td><div style="width:36px;height:36px;border-radius:8px;background:#F0FDF4;display:flex;align-items:center;justify-content:center;font-size:18px;">🪟</div></td>
+            <td style="color:#64748B;">$480</td>
+            <td style="font-weight:700;">$499</td>
+            <td style="color:#64748B;">31 u.</td>
+            <td><div class="switch on" onclick="toggleSwitch(this)"><div class="switch-knob"></div></div></td>
+          </tr>
+          <tr data-filter="publicados">
+            <td><span style="font-size:16px;margin-right:8px;">🔧</span><span style="font-weight:500;">Desengrasante Ind. 5L</span></td>
+            <td><div style="width:36px;height:36px;border-radius:8px;background:#F1F5F9;display:flex;align-items:center;justify-content:center;font-size:18px;">🔧</div></td>
+            <td style="color:#64748B;">$2.100</td>
+            <td style="font-weight:700;">$2.290</td>
+            <td style="color:#64748B;">22 u.</td>
+            <td><div class="switch on" onclick="toggleSwitch(this)"><div class="switch-knob"></div></div></td>
+          </tr>
+          <tr data-filter="sin foto" style="background:#FFF5F5;">
+            <td><span style="font-size:16px;margin-right:8px;opacity:0.4;">🌸</span><span style="font-weight:500;color:#94A3B8;">Suavizante Floral 1L</span></td>
+            <td>
+              <div style="width:36px;height:36px;border-radius:8px;border:2px dashed #CBD5E1;display:flex;align-items:center;justify-content:center;font-size:13px;color:#94A3B8;cursor:pointer;" title="Subir foto">+</div>
+            </td>
+            <td style="color:#64748B;">$950</td>
+            <td style="color:#94A3B8;">—</td>
+            <td style="color:#94A3B8;">—</td>
+            <td>
+              <div style="display:flex;align-items:center;gap:6px;">
+                <div class="switch" style="opacity:0.4;cursor:not-allowed;"><div class="switch-knob"></div></div>
+                <span style="font-size:11px;color:#C0392B;">⚠ Sin foto</span>
+              </div>
+            </td>
+          </tr>
+          <tr data-filter="sin foto" style="background:#FFF5F5;">
+            <td><span style="font-size:16px;margin-right:8px;opacity:0.4;">🫧</span><span style="font-weight:500;color:#94A3B8;">Jabón Líquido Manos</span></td>
+            <td>
+              <div style="width:36px;height:36px;border-radius:8px;border:2px dashed #CBD5E1;display:flex;align-items:center;justify-content:center;font-size:13px;color:#94A3B8;cursor:pointer;" title="Subir foto">+</div>
+            </td>
+            <td style="color:#64748B;">$390</td>
+            <td style="color:#94A3B8;">—</td>
+            <td style="color:#94A3B8;">—</td>
+            <td>
+              <div style="display:flex;align-items:center;gap:6px;">
+                <div class="switch" style="opacity:0.4;cursor:not-allowed;"><div class="switch-knob"></div></div>
+                <span style="font-size:11px;color:#C0392B;">⚠ Sin foto</span>
+              </div>
+            </td>
+          </tr>
+          <tr data-filter="sin publicar">
+            <td><span style="font-size:16px;margin-right:8px;">✨</span><span style="font-weight:500;color:#94A3B8;">Cera Pisos 1L</span></td>
+            <td><div style="width:36px;height:36px;border-radius:8px;background:#F1F5F9;display:flex;align-items:center;justify-content:center;font-size:18px;opacity:0.5;">✨</div></td>
+            <td style="color:#64748B;">$1.450</td>
+            <td style="color:#94A3B8;">—</td>
+            <td style="color:#94A3B8;">0 u.</td>
+            <td><div class="switch" onclick="toggleSwitch(this)"><div class="switch-knob"></div></div></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+
+  <!-- ══════════════ USUARIOS ══════════════ -->
+  <div class="dscreen" id="dscreen-usuarios">
+    <div class="page-header">
+      <div>
+        <div class="page-title">Usuarios</div>
+        <div class="page-sub">4 usuarios registrados</div>
+      </div>
+      <button class="btn btn-primary" onclick="showSection('usuarios-nuevo')">+ Nuevo usuario</button>
+    </div>
+
+    <div class="kpi-grid">
+      <div class="kpi-card" style="color:#2E86AB;">
+        <div class="kpi-label">Administradores</div>
+        <div class="kpi-value">1</div>
+        <div class="kpi-delta">acceso total</div>
+      </div>
+      <div class="kpi-card" style="color:#27AE60;">
+        <div class="kpi-label">Vendedores</div>
+        <div class="kpi-value">2</div>
+        <div class="kpi-delta">ventas y clientes</div>
+      </div>
+      <div class="kpi-card" style="color:#8B5CF6;">
+        <div class="kpi-label">Depósito</div>
+        <div class="kpi-value">1</div>
+        <div class="kpi-delta">stock e ingresos</div>
+      </div>
+      <div class="kpi-card" style="color:#64748B;">
+        <div class="kpi-label">Inactivos</div>
+        <div class="kpi-value">1</div>
+        <div class="kpi-delta down">sin acceso</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Usuarios del sistema</span>
+      </div>
+      <table class="dt">
+        <thead>
+          <tr><th>Usuario</th><th>Email</th><th>Rol</th><th>Último acceso</th><th>Estado</th><th>Acciones</th></tr>
+        </thead>
+        <tbody id="d-usuarios-body">
+          <tr>
+            <td>
+              <div style="display:flex;align-items:center;gap:10px;">
+                <div style="width:36px;height:36px;border-radius:8px;background:#DBEAFE;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#1D4ED8;">H</div>
+                <span style="font-weight:600;">Hugo Montivitale</span>
+              </div>
+            </td>
+            <td style="color:#64748B;">hugo@ons.com</td>
+            <td><span class="badge badge-blue">Administrador</span></td>
+            <td style="color:#64748B;">Ahora</td>
+            <td><div class="switch on" onclick="toggleSwitch(this)"><div class="switch-knob"></div></div></td>
+            <td>
+              <div style="display:flex;gap:6px;">
+                <button class="btn btn-ghost btn-sm" onclick="showSection('usuarios-editar')">✏️ Editar</button>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <div style="display:flex;align-items:center;gap:10px;">
+                <div style="width:36px;height:36px;border-radius:8px;background:#DCFCE7;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#15803D;">M</div>
+                <span style="font-weight:600;">Martina López</span>
+              </div>
+            </td>
+            <td style="color:#64748B;">martina@ons.com</td>
+            <td><span class="badge badge-green">Vendedor</span></td>
+            <td style="color:#64748B;">Hace 2 horas</td>
+            <td><div class="switch on" onclick="toggleSwitch(this)"><div class="switch-knob"></div></div></td>
+            <td>
+              <div style="display:flex;gap:6px;">
+                <button class="btn btn-ghost btn-sm" onclick="showSection('usuarios-editar')">✏️ Editar</button>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <div style="display:flex;align-items:center;gap:10px;">
+                <div style="width:36px;height:36px;border-radius:8px;background:#DCFCE7;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#15803D;">R</div>
+                <span style="font-weight:600;">Rodrigo Sánchez</span>
+              </div>
+            </td>
+            <td style="color:#64748B;">rodrigo@ons.com</td>
+            <td><span class="badge badge-green">Vendedor</span></td>
+            <td style="color:#64748B;">Ayer</td>
+            <td><div class="switch on" onclick="toggleSwitch(this)"><div class="switch-knob"></div></div></td>
+            <td>
+              <div style="display:flex;gap:6px;">
+                <button class="btn btn-ghost btn-sm" onclick="showSection('usuarios-editar')">✏️ Editar</button>
+              </div>
+            </td>
+          </tr>
+          <tr style="opacity:0.6;">
+            <td>
+              <div style="display:flex;align-items:center;gap:10px;">
+                <div style="width:36px;height:36px;border-radius:8px;background:#F3E8FF;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#6B21A8;">D</div>
+                <span style="font-weight:500;color:#94A3B8;">Diego Romero</span>
+              </div>
+            </td>
+            <td style="color:#94A3B8;">diego@ons.com</td>
+            <td><span class="badge" style="background:#F3E8FF;color:#6B21A8;">Depósito</span></td>
+            <td style="color:#94A3B8;">Hace 12 días</td>
+            <td><div class="switch" onclick="toggleSwitch(this)"><div class="switch-knob"></div></div></td>
+            <td>
+              <div style="display:flex;gap:6px;">
+                <button class="btn btn-ghost btn-sm" onclick="showSection('usuarios-editar')">✏️ Editar</button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+
+  <!-- ══════════════ CONFIGURACIÓN ══════════════ -->
+  <div class="dscreen" id="dscreen-config">
+    <div class="page-header">
+      <div>
+        <div class="page-title">Configuración</div>
+        <div class="page-sub">Ajustes del sistema</div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:200px 1fr;gap:20px;align-items:start;">
+
+      <!-- Sub-nav lateral -->
+      <div class="card" style="padding:8px 0;">
+        <div id="cfg-nav-negocio"  class="cfg-nav-item active"  onclick="switchConfig('negocio')">🏪 Negocio</div>
+        <div id="cfg-nav-factura"  class="cfg-nav-item"         onclick="switchConfig('factura')">🧾 Facturación</div>
+        <div id="cfg-nav-notif"    class="cfg-nav-item"         onclick="switchConfig('notif')">🔔 Notificaciones</div>
+        <div id="cfg-nav-integ"    class="cfg-nav-item"         onclick="switchConfig('integ')">🔗 Integraciones</div>
+        <div id="cfg-nav-perfil"   class="cfg-nav-item"         onclick="switchConfig('perfil')">👤 Mi perfil</div>
+      </div>
+
+      <!-- Paneles -->
+      <div>
+
+        <!-- NEGOCIO -->
+        <div id="cfg-negocio" class="cfg-panel card">
+          <div class="card-header"><span class="card-title">Datos del negocio</span></div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Nombre del negocio</label>
+              <input class="form-input" value="ONS Química" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">CUIT</label>
+              <input class="form-input" value="20-38294710-3" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Teléfono</label>
+              <input class="form-input" value="+54 9 11 5555-1234" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Email de contacto</label>
+              <input class="form-input" value="hugo@onsquimica.com" />
+            </div>
+            <div class="form-group" style="grid-column:1/-1;">
+              <label class="form-label">Dirección</label>
+              <input class="form-input" value="Av. Corrientes 1234, CABA" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Moneda</label>
+              <select class="form-input">
+                <option selected>ARS — Peso argentino</option>
+                <option>USD — Dólar</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">IVA por defecto</label>
+              <select class="form-input">
+                <option selected>21%</option>
+                <option>10.5%</option>
+                <option>Exento</option>
+              </select>
+            </div>
+          </div>
+          <div style="margin-top:4px;text-align:right;padding:0 20px 20px;">
+            <button class="btn btn-primary" onclick="showToast('Cambios guardados')">Guardar cambios</button>
+          </div>
+        </div>
+
+        <!-- FACTURACIÓN -->
+        <div id="cfg-factura" class="cfg-panel card" style="display:none;">
+          <div class="card-header"><span class="card-title">Facturación</span></div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Punto de venta</label>
+              <input class="form-input" value="0001" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Condición IVA</label>
+              <select class="form-input">
+                <option selected>Responsable Inscripto</option>
+                <option>Monotributista</option>
+                <option>Exento</option>
+              </select>
+            </div>
+            <div class="form-group" style="grid-column:1/-1;">
+              <label class="form-label">Integración AFIP</label>
+              <div style="display:flex;align-items:center;gap:12px;margin-top:6px;">
+                <span class="badge badge-green">● Conectado</span>
+                <span style="font-size:13px;color:#64748B;">Clave Fiscal nivel 3 — CUIT 20-38294710-3</span>
+              </div>
+            </div>
+            <div class="form-group" style="grid-column:1/-1;">
+              <label class="form-label">Numeración siguiente</label>
+              <div style="display:flex;gap:12px;">
+                <div>
+                  <div style="font-size:11px;color:#94A3B8;margin-bottom:4px;">Factura A</div>
+                  <input class="form-input" value="00000147" style="width:120px;" />
+                </div>
+                <div>
+                  <div style="font-size:11px;color:#94A3B8;margin-bottom:4px;">Factura B</div>
+                  <input class="form-input" value="00000312" style="width:120px;" />
+                </div>
+                <div>
+                  <div style="font-size:11px;color:#94A3B8;margin-bottom:4px;">Remito</div>
+                  <input class="form-input" value="00000089" style="width:120px;" />
+                </div>
+              </div>
+            </div>
+          </div>
+          <div style="margin-top:4px;text-align:right;padding:0 20px 20px;">
+            <button class="btn btn-primary" onclick="showToast('Cambios guardados')">Guardar cambios</button>
+          </div>
+        </div>
+
+        <!-- NOTIFICACIONES -->
+        <div id="cfg-notif" class="cfg-panel card" style="display:none;">
+          <div class="card-header"><span class="card-title">Notificaciones</span></div>
+          <div style="display:flex;flex-direction:column;gap:0;">
+            <div class="cfg-toggle-row">
+              <div>
+                <div style="font-size:14px;font-weight:500;">Stock crítico</div>
+                <div style="font-size:12px;color:#94A3B8;">Avisar cuando un producto cae por debajo del mínimo</div>
+              </div>
+              <div class="switch on" onclick="toggleSwitch(this)"><div class="switch-knob"></div></div>
+            </div>
+            <div class="cfg-toggle-row">
+              <div>
+                <div style="font-size:14px;font-weight:500;">Nueva venta</div>
+                <div style="font-size:12px;color:#94A3B8;">Notificación al registrar cada venta</div>
+              </div>
+              <div class="switch on" onclick="toggleSwitch(this)"><div class="switch-knob"></div></div>
+            </div>
+            <div class="cfg-toggle-row">
+              <div>
+                <div style="font-size:14px;font-weight:500;">Pedido nuevo en tienda</div>
+                <div style="font-size:12px;color:#94A3B8;">Alerta cuando entra un pedido de Tiendanube</div>
+              </div>
+              <div class="switch on" onclick="toggleSwitch(this)"><div class="switch-knob"></div></div>
+            </div>
+            <div class="cfg-toggle-row">
+              <div>
+                <div style="font-size:14px;font-weight:500;">Resumen diario</div>
+                <div style="font-size:12px;color:#94A3B8;">Resumen de ventas del día a las 20:00</div>
+              </div>
+              <div class="switch" onclick="toggleSwitch(this)"><div class="switch-knob"></div></div>
+            </div>
+            <div class="cfg-toggle-row" style="border:none;">
+              <div>
+                <div style="font-size:14px;font-weight:500;">Recordatorio de cobros</div>
+                <div style="font-size:12px;color:#94A3B8;">Avisar cuando hay ventas con pago pendiente</div>
+              </div>
+              <div class="switch on" onclick="toggleSwitch(this)"><div class="switch-knob"></div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- INTEGRACIONES -->
+        <div id="cfg-integ" class="cfg-panel card" style="display:none;">
+          <div class="card-header"><span class="card-title">Integraciones</span></div>
+          <div style="display:flex;flex-direction:column;gap:0;">
+            <div class="cfg-toggle-row">
+              <div style="display:flex;align-items:center;gap:12px;flex:1;">
+                <div style="font-size:28px;">🛒</div>
+                <div>
+                  <div style="font-size:14px;font-weight:600;">Tiendanube</div>
+                  <div style="font-size:12px;color:#64748B;">ons-quimica.mitiendanube.com</div>
+                </div>
+                <span class="badge badge-green">● Conectado</span>
+              </div>
+              <button class="btn btn-ghost btn-sm">Desconectar</button>
+            </div>
+            <div class="cfg-toggle-row">
+              <div style="display:flex;align-items:center;gap:12px;flex:1;">
+                <div style="font-size:28px;">📊</div>
+                <div>
+                  <div style="font-size:14px;font-weight:600;">AFIP</div>
+                  <div style="font-size:12px;color:#64748B;">Facturación electrónica — CUIT 20-38294710-3</div>
+                </div>
+                <span class="badge badge-green">● Conectado</span>
+              </div>
+              <button class="btn btn-ghost btn-sm">Reconfigurar</button>
+            </div>
+            <div class="cfg-toggle-row">
+              <div style="display:flex;align-items:center;gap:12px;flex:1;">
+                <div style="font-size:28px;">💳</div>
+                <div>
+                  <div style="font-size:14px;font-weight:600;">MercadoPago</div>
+                  <div style="font-size:12px;color:#64748B;">Cobros online y QR</div>
+                </div>
+                <span class="badge" style="background:#FEF9C3;color:#92400E;">⚠ Sin configurar</span>
+              </div>
+              <button class="btn btn-primary btn-sm">Conectar</button>
+            </div>
+            <div class="cfg-toggle-row" style="border:none;">
+              <div style="display:flex;align-items:center;gap:12px;flex:1;">
+                <div style="font-size:28px;">📦</div>
+                <div>
+                  <div style="font-size:14px;font-weight:600;">Andreani / OCA</div>
+                  <div style="font-size:12px;color:#64748B;">Logística y envíos</div>
+                </div>
+                <span class="badge" style="background:#F1F5F9;color:#94A3B8;">No conectado</span>
+              </div>
+              <button class="btn btn-ghost btn-sm">Conectar</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- PERFIL -->
+        <div id="cfg-perfil" class="cfg-panel card" style="display:none;">
+          <div class="card-header"><span class="card-title">Mi perfil</span></div>
+          <div style="display:flex;align-items:center;gap:16px;padding:20px 20px 16px;">
+            <div style="width:64px;height:64px;border-radius:14px;background:#DBEAFE;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:700;color:#1D4ED8;">H</div>
+            <div>
+              <div style="font-size:18px;font-weight:700;">Hugo Montivitale</div>
+              <div style="font-size:13px;color:#64748B;">Administrador</div>
+            </div>
+          </div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Nombre</label>
+              <input class="form-input" value="Hugo" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Apellido</label>
+              <input class="form-input" value="Montivitale" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Email</label>
+              <input class="form-input" value="hugo@ons.com" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Teléfono</label>
+              <input class="form-input" value="+54 9 11 5555-0000" />
+            </div>
+            <div class="form-group" style="grid-column:1/-1;">
+              <label class="form-label">Nueva contraseña</label>
+              <input class="form-input" type="password" placeholder="Dejar vacío para no cambiar" />
+            </div>
+          </div>
+          <div style="margin-top:4px;padding:0 20px 20px;display:flex;justify-content:space-between;align-items:center;">
+            <button class="btn btn-ghost" style="color:#C0392B;" onclick="showToast('Sesión cerrada')">Cerrar sesión</button>
+            <button class="btn btn-primary" onclick="showToast('Perfil actualizado')">Guardar cambios</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+</div><!-- /main -->
+
+
+<div id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+const SECTION_TITLES = {
+  'dashboard':'Dashboard','ventas':'Ventas','ventas-nuevo':'Nueva venta',
+  'ventas-confirmacion':'Resumen del pedido','ventas-productos':'Agregar producto',
+  'stock':'Stock','stock-carga':'Registrar ingreso de stock',
+  'clientes':'Clientes','clientes-detalle':'Detalle del cliente',
+  'clientes-nuevo':'Nuevo cliente','clientes-editar':'Editar cliente',
+  'productos':'Productos','productos-nuevo':'Nuevo producto','productos-editar':'Editar producto',
+  'formulas':'Fórmulas — Costeo','formulas-componentes':'Componentes e insumos',
+  'formulas-componentes-nuevo':'Nuevo insumo','formulas-editar':'Editar fórmula',
+  'reportes':'Reportes','reportes-poderventa':'Poder de venta',
+  'tienda':'Tienda Online','usuarios':'Usuarios',
+  'usuarios-nuevo':'Nuevo usuario','usuarios-editar':'Editar usuario',
+  'config':'Configuración','config-negocio':'Datos del negocio',
+  'config-facturacion':'Facturación','config-notificaciones':'Notificaciones',
+  'config-integraciones':'Integraciones','config-perfil':'Mi perfil',
+};
+
+const SECTION_BACKS = {
+  'ventas-nuevo':'ventas','ventas-confirmacion':'ventas-nuevo','ventas-productos':'ventas-nuevo',
+  'clientes-detalle':'clientes','clientes-nuevo':'clientes','clientes-editar':'clientes-detalle',
+  'productos-nuevo':'productos','productos-editar':'productos',
+  'formulas-componentes':'formulas','formulas-componentes-nuevo':'formulas-componentes',
+  'formulas-editar':'formulas-componentes','stock-carga':'stock',
+  'usuarios-nuevo':'usuarios','usuarios-editar':'usuarios',
+  'config-negocio':'config','config-facturacion':'config','config-notificaciones':'config',
+  'config-integraciones':'config','config-perfil':'config',
+  'reportes-poderventa':'reportes',
+};
+
+let _currentSection = 'dashboard';
+
+function showSection(id) {
+  document.querySelectorAll('.dscreen').forEach(s => s.classList.remove('active'));
+  const target = document.getElementById('dscreen-' + id);
+  if (target) {
+    target.classList.add('active');
+  } else {
+    showToast('Pantalla "' + id + '" próximamente');
+    return;
+  }
+  _currentSection = id;
+
+  // Sidebar active
+  document.querySelectorAll('.sb-item').forEach(item => {
+    const s = item.dataset.section;
+    item.classList.toggle('active', s === id || id.startsWith(s + '-'));
+  });
+
+  // Topbar
+  document.getElementById('tb-title').textContent = SECTION_TITLES[id] || id;
+  const back = document.getElementById('tb-back');
+  if (SECTION_BACKS[id]) {
+    back.classList.add('visible');
+  } else {
+    back.classList.remove('visible');
+  }
+
+  // Scroll to top
+  document.querySelector('.main').scrollTop = 0;
+  localStorage.setItem('ons_section', id);
+
+  // Inicialización de pantallas de acción
+  if (id === 'ventas-nuevo') nvInit();
+  if (id === 'stock-carga') scInit();
+  if (id === 'clientes-detalle') cdInit();
+  if (id === 'clientes-nuevo') cnInit();
+  if (id === 'productos-nuevo') npInit();
+  if (id === 'productos-editar') epInit();
+  if (id === 'usuarios-nuevo') nuInit();
+  if (id === 'usuarios-editar') euInit();
+  if (id === 'formulas-componentes') fcInit();
+}
+
+function goBack() {
+  const back = SECTION_BACKS[_currentSection];
+  if (back) showSection(back);
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = '✅ ' + msg;
+  t.style.opacity = '1';
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => { t.style.opacity = '0'; }, 2000);
+}
+
+function showConfirm(msg, onConfirm) {
+  let ov = document.getElementById('confirm-overlay');
+  if (ov) ov.remove();
+  ov = document.createElement('div');
+  ov.id = 'confirm-overlay';
+  ov.className = 'confirm-overlay';
+  ov.innerHTML = `<div class="confirm-box">
+    <div class="confirm-title">¿Estás seguro?</div>
+    <div class="confirm-msg">${msg}</div>
+    <div class="confirm-actions">
+      <button class="btn btn-ghost" id="conf-no">Cancelar</button>
+      <button class="btn btn-danger" id="conf-yes">Confirmar</button>
+    </div>
+  </div>`;
+  document.body.appendChild(ov);
+  document.getElementById('conf-yes').onclick = () => { ov.remove(); onConfirm(); };
+  document.getElementById('conf-no').onclick = () => ov.remove();
+  ov.addEventListener('click', e => { if (e.target === ov) ov.remove(); });
+}
+
+function toggleSwitch(el) {
+  el.classList.toggle('on');
+}
+
+function activateDTab(btn, filter) {
+  btn.closest('.tab-bar').querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const tbody = btn.closest('.card').querySelector('tbody');
+  if (!tbody) return;
+  tbody.querySelectorAll('tr').forEach(row => {
+    const f = (row.dataset.filter || '').toLowerCase();
+    const match = filter === 'todas' || filter === 'todos' || f.split(' ').includes(filter);
+    row.style.display = match ? '' : 'none';
+  });
+}
+
+function searchDStock(input) {
+  const q = input.value.toLowerCase();
+  document.querySelectorAll('#d-stock-table tbody tr').forEach(row => {
+    const name = (row.dataset.name || '').toLowerCase();
+    row.style.display = name.includes(q) ? '' : 'none';
+  });
+}
+
+function switchReport(btn, panelId) {
+  btn.closest('.tab-bar').querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  ['rep-resumen','rep-productos','rep-rotacion','rep-cashflow','rep-rentabilidad','rep-poderventa']
+    .forEach(id => { const el = document.getElementById(id); if (el) el.style.display = id === panelId ? '' : 'none'; });
+  if (panelId === 'rep-poderventa') renderPV();
+}
+
+const COSTO_BASE = 850;
+function updateSimulator(val) {
+  const margen = parseInt(val);
+  document.getElementById('sim-pct').textContent = margen + '%';
+  const precio = Math.round(COSTO_BASE / (1 - margen / 100));
+  document.getElementById('sim-price').textContent = '$' + precio.toLocaleString('es-AR');
+  const el = document.getElementById('sim-color');
+  if (margen < 25) { el.textContent = 'margen 🔴 bajo'; el.style.color = '#C0392B'; }
+  else if (margen < 35) { el.textContent = 'margen 🟡 aceptable'; el.style.color = '#E67E22'; }
+  else if (margen < 50) { el.textContent = 'margen 🟢 bueno'; el.style.color = '#27AE60'; }
+  else { el.textContent = 'margen 🟢 excelente'; el.style.color = '#15803D'; }
+}
+
+// ── PODER DE VENTA ──────────────────────────────────────────
+// TODO: ventas_30d vendría de la tabla de movimientos/ventas cuando exista
+const PRODUCTOS_PV = [
+  { nombre:'Lavandina 5L',        emoji:'🧴', stock_actual:8,  stock_minimo:20, precio_venta:1200, precio_costo:850,  ventas_30d:60 },
+  { nombre:'Suavizante Floral 1L',emoji:'🌸', stock_actual:3,  stock_minimo:15, precio_venta:950,  precio_costo:620,  ventas_30d:45 },
+  { nombre:'Detergente Limón 1L', emoji:'🍋', stock_actual:22, stock_minimo:10, precio_venta:680,  precio_costo:420,  ventas_30d:80 },
+  { nombre:'Jabón Líquido Manos', emoji:'🫧', stock_actual:14, stock_minimo:10, precio_venta:390,  precio_costo:220,  ventas_30d:42 },
+  { nombre:'Limpiavidrios 500ml', emoji:'🪟', stock_actual:31, stock_minimo:15, precio_venta:480,  precio_costo:280,  ventas_30d:30 },
+  { nombre:'Desengrasante Ind. 5L',emoji:'🔧',stock_actual:22, stock_minimo:10, precio_venta:2100, precio_costo:1200, ventas_30d:12 },
+  { nombre:'Cera Pisos 1L',       emoji:'✨', stock_actual:45, stock_minimo:5,  precio_venta:1450, precio_costo:890,  ventas_30d:4  },
+];
+
+let pvSortCol = 'potencial', pvSortDir = -1, pvFilter = 'todos', pvChart = null;
+
+function calcPV() {
+  return PRODUCTOS_PV.map(p => {
+    const vd = p.ventas_30d / 30;
+    const dias = vd > 0 ? Math.round(p.stock_actual / vd) : null;
+    const rot  = p.stock_actual > 0 ? +(p.ventas_30d / p.stock_actual).toFixed(1) : null;
+    const pot  = p.stock_actual * p.precio_venta;
+    const cap  = p.stock_actual * p.precio_costo;
+    const mar  = +((p.precio_venta - p.precio_costo) / p.precio_venta * 100).toFixed(1);
+    let estado;
+    if (p.stock_actual < p.stock_minimo) estado = 'critico';
+    else if (dias !== null && dias < 14)  estado = 'reponer';
+    else if (dias !== null && dias > 90)  estado = 'exceso';
+    else                                  estado = 'normal';
+    return { ...p, dias, rot, pot, cap, mar, estado };
+  });
+}
+
+function renderPV() {
+  const data = calcPV();
+  const fmt = n => '$' + Math.round(n).toLocaleString('es-AR');
+  const potT = data.reduce((s,p)=>s+p.pot,0);
+  const capT = data.reduce((s,p)=>s+p.cap,0);
+  const riesgo = data.filter(p=>p.estado==='critico').length;
+  document.getElementById('pv-kpis').innerHTML = `
+    <div class="kpi-card" style="color:#2E86AB;"><div class="kpi-label">Potencial total</div><div class="kpi-value">${fmt(potT)}</div><div class="kpi-delta">si vendés todo el stock</div></div>
+    <div class="kpi-card" style="color:#E67E22;"><div class="kpi-label">Capital inmovilizado</div><div class="kpi-value">${fmt(capT)}</div><div class="kpi-delta">costo del stock actual</div></div>
+    <div class="kpi-card" style="color:#27AE60;"><div class="kpi-label">Margen potencial</div><div class="kpi-value">${fmt(potT-capT)}</div><div class="kpi-delta up">ganancia si se vende todo</div></div>
+    <div class="kpi-card" style="color:#C0392B;"><div class="kpi-label">Productos en riesgo</div><div class="kpi-value">${riesgo}</div><div class="kpi-delta down">con stock bajo mínimo</div></div>`;
+  renderPVTable(data);
+  renderPVAlerts(data);
+  renderPVChart(data);
+}
+
+function renderPVTable(data) {
+  const fmt = n => '$' + n.toLocaleString('es-AR');
+  const BADGE = {
+    critico:'<span class="badge badge-red">🔴 Crítico</span>',
+    reponer:'<span class="badge" style="background:#FEF3C7;color:#92400E;">🟠 Reponer</span>',
+    normal: '<span class="badge badge-green">🟢 Normal</span>',
+    exceso: '<span class="badge badge-blue">🔵 Exceso</span>',
+  };
+  let rows = data.filter(p => pvFilter==='todos' || p.estado===pvFilter);
+  rows.sort((a,b) => {
+    const av = a[pvSortCol], bv = b[pvSortCol];
+    if (av===null && bv===null) return 0;
+    if (av===null) return 1; if (bv===null) return -1;
+    return pvSortDir * (av > bv ? 1 : av < bv ? -1 : 0);
+  });
+  document.getElementById('pv-tbody').innerHTML = rows.map(p => {
+    const dc = p.dias===null ? '—' : p.dias+'d';
+    const dcStyle = p.dias===null?'':p.dias<7?'color:#C0392B;font-weight:700;':p.dias<14?'color:#E67E22;font-weight:600;':'';
+    const marStyle = p.mar<30?'color:#E67E22;font-weight:600;':'color:#27AE60;font-weight:600;';
+    const rid = 'pvr-'+p.nombre.replace(/\s+/g,'-').replace(/\./g,'');
+    return `<tr id="${rid}">
+      <td><span style="margin-right:6px;">${p.emoji}</span><span style="font-weight:500;">${p.nombre}</span></td>
+      <td>${p.stock_actual} u.</td>
+      <td style="font-weight:700;">${fmt(p.precio_venta)}</td>
+      <td style="color:#64748B;">${fmt(p.precio_costo)}</td>
+      <td style="${marStyle}">${p.mar}%</td>
+      <td style="font-weight:700;">${fmt(p.pot)}</td>
+      <td style="${dcStyle}">${dc}</td>
+      <td style="color:#64748B;">${p.rot!==null?p.rot+'x':'—'}</td>
+      <td>${BADGE[p.estado]}</td>
+    </tr>`;
+  }).join('');
+}
+
+function renderPVAlerts(data) {
+  const fmt = n => '$'+n.toLocaleString('es-AR');
+  let html = '';
+  data.filter(p=>p.estado==='critico').forEach(p => {
+    html += `<div class="alert-row" onclick="hlPV('${p.nombre}')" style="cursor:pointer;">
+      <div class="alert-dot" style="background:#C0392B;"></div>
+      <div><div style="font-size:13px;font-weight:500;">Stock crítico: ${p.nombre}</div>
+      <div style="font-size:11px;color:#94A3B8;">${p.stock_actual} u. — mínimo ${p.stock_minimo}</div></div></div>`;
+  });
+  data.filter(p=>p.estado==='reponer').forEach(p => {
+    html += `<div class="alert-row" onclick="hlPV('${p.nombre}')" style="cursor:pointer;">
+      <div class="alert-dot" style="background:#E67E22;"></div>
+      <div><div style="font-size:13px;font-weight:500;">Reponer pronto: ${p.nombre}</div>
+      <div style="font-size:11px;color:#94A3B8;">${p.dias} días de cobertura</div></div></div>`;
+  });
+  data.filter(p=>p.estado==='exceso'&&p.pot>30000).forEach(p => {
+    html += `<div class="alert-row" onclick="hlPV('${p.nombre}')" style="cursor:pointer;">
+      <div class="alert-dot" style="background:#2E86AB;"></div>
+      <div><div style="font-size:13px;font-weight:500;">Capital parado: ${p.nombre}</div>
+      <div style="font-size:11px;color:#94A3B8;">${p.dias} días de cobertura · ${fmt(p.pot)} inmovilizados</div></div></div>`;
+  });
+  const top3 = [...data].filter(p=>p.stock_actual>0).sort((a,b)=>b.mar-a.mar).slice(0,3);
+  if (top3.length) {
+    html += `<div style="margin-top:10px;padding-top:10px;border-top:1px solid #F1F5F9;">
+      <div style="font-size:10px;font-weight:700;color:#64748B;letter-spacing:.05em;margin-bottom:6px;">✅ MAYOR MARGEN DISPONIBLE</div>`;
+    top3.forEach((p,i) => {
+      html += `<div class="alert-row" onclick="hlPV('${p.nombre}')" style="cursor:pointer;padding:6px 0;">
+        <div style="width:18px;height:18px;border-radius:4px;background:#DCFCE7;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#15803D;flex-shrink:0;">${i+1}</div>
+        <div><div style="font-size:12px;font-weight:500;">${p.emoji} ${p.nombre}</div>
+        <div style="font-size:11px;color:#94A3B8;">${p.mar}% margen</div></div></div>`;
+    });
+    html += '</div>';
+  }
+  document.getElementById('pv-alerts').innerHTML = html || '<p style="font-size:13px;color:#94A3B8;padding:8px 0;">Sin alertas activas</p>';
+}
+
+function hlPV(nombre) {
+  const id = 'pvr-'+nombre.replace(/\s+/g,'-').replace(/\./g,'');
+  const row = document.getElementById(id);
+  if (!row) return;
+  row.scrollIntoView({ behavior:'smooth', block:'center' });
+  row.style.transition = 'background .2s';
+  row.style.background = '#FFF9C4';
+  setTimeout(()=>{ row.style.background=''; }, 2000);
+}
+
+function filterPV(btn, f) {
+  pvFilter = f;
+  document.querySelectorAll('.pv-filter').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderPVTable(calcPV());
+}
+
+function sortPV(th, col) {
+  pvSortDir = pvSortCol===col ? pvSortDir*-1 : -1;
+  pvSortCol = col;
+  document.querySelectorAll('#pv-table .sort-arrow').forEach(s=>s.textContent='');
+  th.querySelector('.sort-arrow').textContent = pvSortDir===-1 ? '▼' : '▲';
+  renderPVTable(calcPV());
+}
+
+function renderPVChart(data) {
+  const sorted = [...data].sort((a,b)=>b.pot-a.pot);
+  const total = sorted.reduce((s,p)=>s+p.pot,0);
+  let cum = 0;
+  const labels = sorted.map(p => p.nombre.length>14 ? p.nombre.slice(0,13)+'…' : p.nombre);
+  const pots   = sorted.map(p => p.pot);
+  const cumPct = sorted.map(p => { cum+=p.pot; return Math.round(cum/total*100); });
+  const bgColors = sorted.map(p => ({critico:'#FEE2E2',reponer:'#FEF3C7',normal:'#DCFCE7',exceso:'#DBEAFE'}[p.estado]));
+  const eighty   = sorted.findIndex((_,i) => cumPct[i] >= 80);
+  const ctx = document.getElementById('pv-pareto-chart').getContext('2d');
+  if (pvChart) pvChart.destroy();
+  pvChart = new Chart(ctx, {
+    data: { labels, datasets: [
+      { type:'bar', label:'Potencial ($)', data:pots, backgroundColor:bgColors, borderColor:bgColors.map(c=>c.replace('E2','B0').replace('F3','D0').replace('CE','A0').replace('BE','90')), borderWidth:1, yAxisID:'y', order:2 },
+      { type:'line', label:'% acumulado', data:cumPct, borderColor:'#1E3A5F', backgroundColor:'transparent', borderWidth:2, pointRadius:4, pointBackgroundColor:'#1E3A5F', yAxisID:'y2', order:1, tension:.1 },
+    ]},
+    options: { responsive:true, plugins: {
+      legend:{ position:'top', labels:{ font:{size:12}, boxWidth:14 } },
+      tooltip:{ callbacks:{
+        label: ctx => ctx.dataset.label==='% acumulado' ? ctx.parsed.y+'%' : '$'+ctx.parsed.y.toLocaleString('es-AR')
+      }},
+      annotation: eighty>=0 ? {} : {}
+    }, scales: {
+      y:  { position:'left',  ticks:{ callback:v=>'$'+(v/1000).toFixed(0)+'k', font:{size:11} }, grid:{color:'#F8FAFC'} },
+      y2: { position:'right', min:0, max:100, ticks:{ callback:v=>v+'%', font:{size:11} }, grid:{drawOnChartArea:false} },
+      x:  { ticks:{ font:{size:11} } }
+    }}
+  });
+}
+// ── FIN PODER DE VENTA ──────────────────────────────────────
+
+function switchConfig(key) {
+  document.querySelectorAll('.cfg-nav-item').forEach(n => n.classList.remove('active'));
+  document.querySelectorAll('.cfg-panel').forEach(p => p.style.display = 'none');
+  document.getElementById('cfg-nav-' + key).classList.add('active');
+  document.getElementById('cfg-' + key).style.display = 'block';
+}
+
+function syncTiendaD(btn) {
+  if (btn.dataset.syncing === '1') return;
+  btn.dataset.syncing = '1';
+  btn.innerHTML = '<span class="spinning">🔄</span> Sincronizando...';
+  btn.disabled = true;
+  setTimeout(() => {
+    btn.innerHTML = '🔄 Sincronizar';
+    btn.disabled = false;
+    btn.dataset.syncing = '0';
+    showToast('Sincronización con Tiendanube completada');
+  }, 1800);
+}
+
+function syncDashboard(btn) {
+  if (btn.dataset.syncing === '1') return;
+  btn.dataset.syncing = '1';
+  btn.innerHTML = '<span class="spinning">🔄</span> Actualizando...';
+  btn.disabled = true;
+  setTimeout(() => {
+    btn.innerHTML = '🔄 Actualizar';
+    btn.disabled = false;
+    btn.dataset.syncing = '0';
+    showToast('Dashboard actualizado');
+  }, 1800);
+}
+
+// ═══════════════════════════════════════════════════════
+// CAPA DE DATOS EN MEMORIA
+// ═══════════════════════════════════════════════════════
+
+const DATA_PRODUCTOS = [
+  { id:1, nombre:'Lavandina 5L',         emoji:'🧴', categoria:'limpieza',   precio_venta:1200, precio_costo:850,  stock_actual:8,  stock_minimo:20, ventas_30d:60, estado:'activo',   tiene_foto:true,  publicado_tn:true,  precio_tn:1299 },
+  { id:2, nombre:'Suavizante Floral 1L', emoji:'🌸', categoria:'limpieza',   precio_venta:950,  precio_costo:620,  stock_actual:3,  stock_minimo:15, ventas_30d:45, estado:'activo',   tiene_foto:false, publicado_tn:false, precio_tn:null },
+  { id:3, nombre:'Detergente Limón 1L',  emoji:'🍋', categoria:'limpieza',   precio_venta:680,  precio_costo:420,  stock_actual:22, stock_minimo:10, ventas_30d:80, estado:'activo',   tiene_foto:true,  publicado_tn:true,  precio_tn:720  },
+  { id:4, nombre:'Jabón Líquido Manos',  emoji:'🫧', categoria:'limpieza',   precio_venta:390,  precio_costo:220,  stock_actual:14, stock_minimo:10, ventas_30d:42, estado:'activo',   tiene_foto:false, publicado_tn:false, precio_tn:null },
+  { id:5, nombre:'Limpiavidrios 500ml',  emoji:'🪟', categoria:'limpieza',   precio_venta:480,  precio_costo:280,  stock_actual:31, stock_minimo:15, ventas_30d:30, estado:'activo',   tiene_foto:true,  publicado_tn:true,  precio_tn:499  },
+  { id:6, nombre:'Desengrasante Ind. 5L',emoji:'🔧', categoria:'industrial', precio_venta:2100, precio_costo:1200, stock_actual:22, stock_minimo:10, ventas_30d:12, estado:'activo',   tiene_foto:true,  publicado_tn:true,  precio_tn:2290 },
+  { id:7, nombre:'Cera Pisos 1L',        emoji:'✨', categoria:'industrial', precio_venta:1450, precio_costo:890,  stock_actual:45, stock_minimo:5,  ventas_30d:4,  estado:'inactivo', tiene_foto:true,  publicado_tn:false, precio_tn:null },
+];
+
+const DATA_CLIENTES = [
+  { id:1, nombre:'Distribuidora Norte',   inicial:'D', color:'#DBEAFE', ctext:'#1D4ED8', tipo:'mayoristas',  telefono:'+54 11 4444-1111', email:'dnorte@mail.com',    total_compras:184200, ultima_compra:'Hoy'        },
+  { id:2, nombre:'Supermercado El Sol',   inicial:'S', color:'#DCFCE7', ctext:'#15803D', tipo:'mayoristas',  telefono:'+54 11 5555-2222', email:'elsol@mail.com',     total_compras:97800,  ultima_compra:'Hace 2 días' },
+  { id:3, nombre:'María Gómez',           inicial:'M', color:'#FEF3C7', ctext:'#92400E', tipo:'frecuentes',  telefono:'+54 11 6666-3333', email:'mgomez@gmail.com',   total_compras:42300,  ultima_compra:'Ayer'        },
+  { id:4, nombre:'Limpieza Total SRL',    inicial:'L', color:'#F3E8FF', ctext:'#6B21A8', tipo:'mayoristas',  telefono:'+54 11 7777-4444', email:'ltotal@empresa.com', total_compras:231500, ultima_compra:'Hace 1 sem.' },
+  { id:5, nombre:'Carlos Benítez',        inicial:'C', color:'#F1F5F9', ctext:'#475569', tipo:'minoristas',  telefono:'+54 11 8888-5555', email:'cbenitez@gmail.com', total_compras:8900,   ultima_compra:'Hace 2 sem.' },
+];
+
+const DATA_VENTAS = [
+  { id:4521, cliente_id:1, cliente:'Distribuidora Norte', canal:'TN',     fecha:'2026-06-18', items:3, total:45200, estado:'Pagado'   },
+  { id:4520, cliente_id:3, cliente:'María Gómez',         canal:'Manual', fecha:'2026-06-18', items:1, total:1200,  estado:'Pagado'   },
+  { id:4519, cliente_id:2, cliente:'Supermercado El Sol', canal:'TN',     fecha:'2026-06-17', items:5, total:32800, estado:'Pagado'   },
+  { id:4518, cliente_id:4, cliente:'Limpieza Total SRL',  canal:'Manual', fecha:'2026-06-17', items:8, total:87600, estado:'Pendiente'},
+  { id:4517, cliente_id:5, cliente:'Carlos Benítez',      canal:'Manual', fecha:'2026-06-16', items:2, total:2380,  estado:'Pagado'   },
+  { id:4516, cliente_id:1, cliente:'Distribuidora Norte', canal:'TN',     fecha:'2026-06-15', items:4, total:51200, estado:'Pagado'   },
+];
+
+const DATA_USUARIOS = [
+  { id:1, nombre:'Hugo',    apellido:'Montivitale', email:'hugo@ons.com',     rol:'Administrador', activo:true,  ultimo_acceso:'Ahora',       inicial:'H', color:'#DBEAFE', ctext:'#1D4ED8' },
+  { id:2, nombre:'Martina', apellido:'López',       email:'martina@ons.com',  rol:'Vendedor',      activo:true,  ultimo_acceso:'Hace 2 horas', inicial:'M', color:'#DCFCE7', ctext:'#15803D' },
+  { id:3, nombre:'Rodrigo', apellido:'Sánchez',     email:'rodrigo@ons.com',  rol:'Vendedor',      activo:true,  ultimo_acceso:'Ayer',         inicial:'R', color:'#DCFCE7', ctext:'#15803D' },
+  { id:4, nombre:'Diego',   apellido:'Romero',      email:'diego@ons.com',    rol:'Depósito',      activo:false, ultimo_acceso:'Hace 12 días', inicial:'D', color:'#F3E8FF', ctext:'#6B21A8' },
+];
+
+// ═══════════════════════════════════════════════
+// FUNCIONES DE RENDER
+// ═══════════════════════════════════════════════
+
+function pesos(n) { return '$' + Math.round(n).toLocaleString('es-AR'); }
+
+function estadoStockBadge(p) {
+  const vd = p.ventas_30d / 30;
+  const dias = vd > 0 ? p.stock_actual / vd : 999;
+  if (p.stock_actual === 0) return '<span class="badge badge-gray">⚫ Sin stock</span>';
+  if (p.stock_actual < p.stock_minimo) return '<span class="badge badge-red">🔴 Crítico</span>';
+  if (dias < 14) return '<span class="badge" style="background:#FEF3C7;color:#92400E;">🟡 Bajo</span>';
+  return '<span class="badge badge-green">🟢 Normal</span>';
+}
+
+function estadoStockFilter(p) {
+  const vd = p.ventas_30d / 30;
+  const dias = vd > 0 ? p.stock_actual / vd : 999;
+  if (p.stock_actual === 0) return 'sin stock';
+  if (p.stock_actual < p.stock_minimo) return 'crítico';
+  if (dias < 14) return 'bajo';
+  return 'normal';
+}
+
+function renderVentas() {
+  const BADGE = {
+    'Pagado':   '<span class="badge badge-green">Pagado</span>',
+    'Pendiente':'<span class="badge" style="background:#FEF3C7;color:#92400E;">Pendiente</span>',
+    'Cancelado':'<span class="badge badge-red">Cancelado</span>',
+  };
+  const CANAL = {
+    'TN':     '<span style="font-size:11px;">🌐 Online TN</span>',
+    'Manual': '<span style="font-size:11px;">✍️ Manual</span>',
+  };
+  const filterMap = { 'TN':'online tn', 'Manual':'manuales' };
+  document.getElementById('d-ventas-body').innerHTML = DATA_VENTAS.map(v => `
+    <tr data-filter="${filterMap[v.canal] || 'manuales'}">
+      <td><span class="mono">#${v.id}</span></td>
+      <td>${CANAL[v.canal] || v.canal}</td>
+      <td style="font-weight:500;">${v.cliente}</td>
+      <td style="color:#64748B;">${v.fecha}</td>
+      <td style="color:#64748B;">${v.items}</td>
+      <td style="font-weight:700;">${pesos(v.total)}</td>
+      <td>${BADGE[v.estado] || v.estado}</td>
+      <td><button class="btn btn-ghost btn-sm" style="color:#C0392B;" onclick="eliminarVenta(${v.id})">🗑️</button></td>
+    </tr>`).join('');
+}
+
+function renderStock(query) {
+  const q = (query || '').toLowerCase();
+  document.getElementById('d-stock-body').innerHTML = DATA_PRODUCTOS
+    .filter(p => !q || p.nombre.toLowerCase().includes(q))
+    .map(p => {
+      const filter = estadoStockFilter(p);
+      return `<tr data-filter="${filter}" data-name="${p.nombre.toLowerCase()}">
+        <td><span style="font-size:15px;margin-right:8px;">${p.emoji}</span><span style="font-weight:500;">${p.nombre}</span></td>
+        <td style="color:#64748B;text-transform:capitalize;">${p.categoria}</td>
+        <td style="font-weight:700;">${p.stock_actual} u.</td>
+        <td style="color:#64748B;">${p.stock_minimo} u.</td>
+        <td>${estadoStockBadge(p)}</td>
+      </tr>`;
+    }).join('');
+  if (!document.getElementById('d-stock-body').innerHTML.trim())
+    document.getElementById('d-stock-body').innerHTML = `<tr><td colspan="5" style="text-align:center;color:#94A3B8;padding:24px;">Sin resultados para "${q}"</td></tr>`;
+}
+
+function renderClientes(query) {
+  const q = (query || '').toLowerCase();
+  const TIPO = {
+    'mayoristas': '<span class="badge badge-blue">Mayorista</span>',
+    'frecuentes': '<span class="badge badge-green">Frecuente</span>',
+    'minoristas': '<span class="badge badge-gray">Minorista</span>',
+  };
+  const rows = DATA_CLIENTES.filter(c => !q || c.nombre.toLowerCase().includes(q) || c.email.toLowerCase().includes(q));
+  document.getElementById('d-clientes-body').innerHTML = rows.length ? rows.map(c => `
+    <tr data-filter="${c.tipo}">
+      <td>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="width:34px;height:34px;border-radius:8px;background:${c.color};display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:${c.ctext};">${c.inicial}</div>
+          <span style="font-weight:500;">${c.nombre}</span>
+        </div>
+      </td>
+      <td>${TIPO[c.tipo] || c.tipo}</td>
+      <td style="color:#64748B;">${c.telefono}</td>
+      <td style="font-weight:700;">${pesos(c.total_compras)}</td>
+      <td style="color:#64748B;">${c.ultima_compra}</td>
+      <td>
+        <div style="display:flex;gap:6px;">
+          <button class="btn btn-ghost btn-sm" onclick="_detalleClienteId=${c.id};showSection('clientes-detalle');">Ver detalle</button>
+          <button class="btn btn-ghost btn-sm" style="color:#C0392B;" onclick="eliminarCliente(${c.id})">🗑️</button>
+        </div>
+      </td>
+    </tr>`).join('')
+    : `<tr><td colspan="6" style="text-align:center;color:#94A3B8;padding:24px;">Sin resultados para "${q}"</td></tr>`;
+}
+
+function renderProductos(query) {
+  const q = (query || '').toLowerCase();
+  const rows = DATA_PRODUCTOS.filter(p => !q || p.nombre.toLowerCase().includes(q) || p.categoria.toLowerCase().includes(q));
+  document.getElementById('d-productos-body').innerHTML = rows.length ? rows.map(p => {
+    const mar = Math.round((p.precio_venta - p.precio_costo) / p.precio_venta * 100);
+    const marStyle = mar < 30 ? 'color:#E67E22;font-weight:600;' : 'color:#27AE60;font-weight:600;';
+    const estadoBadge = p.estado === 'activo'
+      ? '<span class="badge badge-green">Activo</span>'
+      : '<span class="badge badge-gray">Inactivo</span>';
+    return `<tr data-filter="${p.categoria}">
+      <td>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span style="font-size:18px;">${p.emoji}</span>
+          <span style="font-weight:500;">${p.nombre}</span>
+        </div>
+      </td>
+      <td style="color:#64748B;text-transform:capitalize;">${p.categoria}</td>
+      <td style="font-weight:700;">${pesos(p.precio_venta)}</td>
+      <td style="color:#64748B;">${pesos(p.precio_costo)}</td>
+      <td style="${marStyle}">${mar}%</td>
+      <td>${estadoBadge}</td>
+      <td>
+        <div style="display:flex;gap:6px;">
+          <button class="btn btn-ghost btn-sm" onclick="_editProductoId=${p.id};showSection('productos-editar');">✏️ Editar</button>
+          <button class="btn btn-ghost btn-sm" style="color:#C0392B;" onclick="eliminarProducto(${p.id})">🗑️</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('')
+  : `<tr><td colspan="7" style="text-align:center;color:#94A3B8;padding:24px;">Sin resultados para "${q}"</td></tr>`;
+}
+
+function renderUsuarios() {
+  const ROL_BADGE = {
+    'Administrador': '<span class="badge badge-blue">Administrador</span>',
+    'Vendedor':      '<span class="badge badge-green">Vendedor</span>',
+    'Depósito':      '<span class="badge" style="background:#F3E8FF;color:#6B21A8;">Depósito</span>',
+  };
+  document.getElementById('d-usuarios-body').innerHTML = DATA_USUARIOS.map((u,i) => `
+    <tr style="${!u.activo ? 'opacity:0.6;' : ''}">
+      <td>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="width:36px;height:36px;border-radius:8px;background:${u.color};display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:${u.ctext};">${u.inicial}</div>
+          <span style="font-weight:${u.activo?'600':'500'};color:${u.activo?'inherit':'#94A3B8'};">${u.nombre} ${u.apellido}</span>
+        </div>
+      </td>
+      <td style="color:#64748B;">${u.email}</td>
+      <td>${ROL_BADGE[u.rol] || u.rol}</td>
+      <td style="color:#64748B;">${u.ultimo_acceso}</td>
+      <td><div class="switch ${u.activo?'on':''}" onclick="toggleUsuario(${i})"><div class="switch-knob"></div></div></td>
+      <td>
+        <div style="display:flex;gap:6px;">
+          <button class="btn btn-ghost btn-sm" onclick="_editUsuarioId=${u.id};showSection('usuarios-editar');">✏️ Editar</button>
+          ${u.rol !== 'Administrador' ? `<button class="btn btn-ghost btn-sm" style="color:#C0392B;" onclick="eliminarUsuario(${u.id})">🗑️</button>` : ''}
+        </div>
+      </td>
+    </tr>`).join('');
+}
+
+function toggleUsuario(idx) {
+  DATA_USUARIOS[idx].activo = !DATA_USUARIOS[idx].activo;
+  renderUsuarios();
+  saveData();
+}
+
+function renderTienda() {
+  document.getElementById('d-tienda-body').innerHTML = DATA_PRODUCTOS.map(p => {
+    const sinFoto = !p.tiene_foto;
+    const filter = sinFoto ? 'sin foto' : (p.publicado_tn ? 'publicados' : 'sin publicar');
+    if (sinFoto) return `
+      <tr data-filter="sin foto" style="background:#FFF5F5;">
+        <td><span style="font-size:16px;margin-right:8px;opacity:0.4;">${p.emoji}</span><span style="font-weight:500;color:#94A3B8;">${p.nombre}</span></td>
+        <td><div style="width:36px;height:36px;border-radius:8px;border:2px dashed #CBD5E1;display:flex;align-items:center;justify-content:center;font-size:13px;color:#94A3B8;cursor:pointer;" title="Subir foto" onclick="showToast('Función de carga de foto próximamente')">+</div></td>
+        <td style="color:#64748B;">${pesos(p.precio_venta)}</td>
+        <td style="color:#94A3B8;">—</td>
+        <td style="color:#94A3B8;">—</td>
+        <td><div style="display:flex;align-items:center;gap:6px;"><div class="switch" style="opacity:0.4;cursor:not-allowed;"><div class="switch-knob"></div></div><span style="font-size:11px;color:#C0392B;">⚠ Sin foto</span></div></td>
+      </tr>`;
+    return `
+      <tr data-filter="${filter}">
+        <td><span style="font-size:16px;margin-right:8px;">${p.emoji}</span><span style="font-weight:500;">${p.nombre}</span></td>
+        <td><div style="width:36px;height:36px;border-radius:8px;background:#F1F5F9;display:flex;align-items:center;justify-content:center;font-size:18px;${!p.publicado_tn?'opacity:0.5;':''}">${p.emoji}</div></td>
+        <td style="color:#64748B;">${pesos(p.precio_venta)}</td>
+        <td style="font-weight:700;">${p.precio_tn ? pesos(p.precio_tn) : '—'}</td>
+        <td style="color:#64748B;">${p.stock_actual} u.</td>
+        <td><div class="switch ${p.publicado_tn?'on':''}" onclick="toggleTienda(${p.id})"><div class="switch-knob"></div></div></td>
+      </tr>`;
+  }).join('');
+}
+
+function toggleTienda(id) {
+  const p = DATA_PRODUCTOS.find(x => x.id === id);
+  if (!p || !p.tiene_foto) return;
+  p.publicado_tn = !p.publicado_tn;
+  renderTienda();
+  actualizarKPIsTienda();
+  saveData();
+  showToast(p.publicado_tn ? `${p.nombre} publicado en Tiendanube` : `${p.nombre} despublicado`);
+}
+
+function actualizarKPIsTienda() {
+  const pub = DATA_PRODUCTOS.filter(p => p.publicado_tn).length;
+  const sinPub = DATA_PRODUCTOS.filter(p => !p.publicado_tn && p.tiene_foto).length;
+  const sinFoto = DATA_PRODUCTOS.filter(p => !p.tiene_foto).length;
+  const kpis = document.querySelectorAll('#dscreen-tienda .kpi-value');
+  if (kpis[0]) kpis[0].textContent = pub;
+  if (kpis[1]) kpis[1].textContent = sinPub;
+  if (kpis[2]) kpis[2].textContent = sinFoto;
+}
+
+function renderDashboard() {
+  const hoy = DATA_VENTAS.filter(v => v.fecha === '2026-06-18');
+  const ventasHoy = hoy.reduce((s,v) => s+v.total, 0);
+  const ordenesHoy = hoy.length;
+  const criticos = DATA_PRODUCTOS.filter(p => p.stock_actual < p.stock_minimo).length;
+  const kpis = document.querySelectorAll('#dscreen-dashboard .kpi-value');
+  if (kpis[0]) kpis[0].textContent = pesos(ventasHoy);
+  if (kpis[1]) kpis[1].textContent = ordenesHoy;
+  if (kpis[2]) kpis[2].textContent = criticos;
+  if (kpis[3]) kpis[3].textContent = DATA_CLIENTES.length;
+
+  const ultVentas = document.getElementById('dash-sales-body');
+  if (ultVentas) {
+    const BADGE = { 'Pagado':'<span class="badge badge-green">Pagado</span>', 'Pendiente':'<span class="badge" style="background:#FEF3C7;color:#92400E;">Pendiente</span>' };
+    ultVentas.innerHTML = DATA_VENTAS.slice(0,5).map(v => `
+      <tr>
+        <td><span class="mono">#${v.id}</span><br><span style="font-size:10px;color:#94A3B8;">${v.canal==='TN'?'🌐 Online':'✍️ Manual'}</span></td>
+        <td style="font-weight:500;">${v.cliente}</td>
+        <td style="color:#64748B;">${v.items} ítems</td>
+        <td style="font-weight:700;">${pesos(v.total)}</td>
+        <td>${BADGE[v.estado]||v.estado}</td>
+      </tr>`).join('');
+  }
+}
+
+// ── NUEVA VENTA ──────────────────────────────────────────
+let _nvItems = [];
+
+function nvInit() {
+  _nvItems = [];
+  // Poblar select de clientes
+  const sel = document.getElementById('nv-cliente');
+  if (sel) {
+    sel.innerHTML = '<option value="">— Seleccionar cliente —</option>' +
+      DATA_CLIENTES.map(c => `<option value="${c.id}">${c.nombre}</option>`).join('');
+  }
+  // Poblar select de productos
+  const psel = document.getElementById('nv-prod-sel');
+  if (psel) {
+    psel.innerHTML = '<option value="">— Elegir producto —</option>' +
+      DATA_PRODUCTOS.filter(p => p.estado === 'activo').map(p => `<option value="${p.id}">${p.emoji} ${p.nombre} — ${pesos(p.precio_venta)}</option>`).join('');
+  }
+  nvRenderItems();
+}
+
+function nvAgregarItem() {
+  const prodId = parseInt(document.getElementById('nv-prod-sel').value);
+  const cant = parseInt(document.getElementById('nv-prod-cant').value) || 1;
+  if (!prodId) { showToast('Seleccioná un producto'); return; }
+  const prod = DATA_PRODUCTOS.find(p => p.id === prodId);
+  if (!prod) return;
+  const existing = _nvItems.find(i => i.id === prodId);
+  if (existing) { existing.cant += cant; }
+  else { _nvItems.push({ id: prodId, nombre: prod.nombre, emoji: prod.emoji, precio: prod.precio_venta, cant }); }
+  document.getElementById('nv-prod-sel').value = '';
+  document.getElementById('nv-prod-cant').value = 1;
+  nvRenderItems();
+}
+
+function nvQuitarItem(idx) {
+  _nvItems.splice(idx, 1);
+  nvRenderItems();
+}
+
+function nvRenderItems() {
+  const body = document.getElementById('nv-items-body');
+  if (!_nvItems.length) {
+    body.innerHTML = '<tr id="nv-empty-row"><td colspan="5" style="text-align:center;color:#94A3B8;padding:24px;">Todavía no agregaste productos</td></tr>';
+    nvActualizarTotal();
+    return;
+  }
+  body.innerHTML = _nvItems.map((item, i) => `
+    <tr>
+      <td><span style="margin-right:6px;">${item.emoji}</span>${item.nombre}</td>
+      <td style="color:#64748B;">${pesos(item.precio)}</td>
+      <td><input type="number" min="1" value="${item.cant}" onchange="_nvItems[${i}].cant=parseInt(this.value)||1;nvRenderItems();" style="width:60px;border:1px solid #E2E8F0;border-radius:6px;padding:4px 8px;text-align:center;font-family:inherit;" /></td>
+      <td style="font-weight:700;">${pesos(item.precio * item.cant)}</td>
+      <td><button class="btn btn-ghost btn-sm" style="color:#C0392B;" onclick="nvQuitarItem(${i})">✕</button></td>
+    </tr>`).join('');
+  nvActualizarTotal();
+}
+
+function nvActualizarTotal() {
+  const sub = _nvItems.reduce((s, i) => s + i.precio * i.cant, 0);
+  const iva = Math.round(sub * 0.21);
+  const total = sub + iva;
+  document.getElementById('nv-subtotal').textContent = pesos(sub);
+  document.getElementById('nv-iva').textContent = pesos(iva);
+  document.getElementById('nv-total').textContent = pesos(total);
+  document.getElementById('nv-resumen-items').textContent = _nvItems.length + ' producto' + (_nvItems.length !== 1 ? 's' : '') + ' agregado' + (_nvItems.length !== 1 ? 's' : '');
+}
+
+function guardarVenta() {
+  const clienteId = parseInt(document.getElementById('nv-cliente').value);
+  if (!clienteId) { showToast('Seleccioná un cliente'); return; }
+  if (!_nvItems.length) { showToast('Agregá al menos un producto'); return; }
+  const cliente = DATA_CLIENTES.find(c => c.id === clienteId);
+  const sub = _nvItems.reduce((s, i) => s + i.precio * i.cant, 0);
+  const total = Math.round(sub * 1.21);
+  const nuevoId = Math.max(...DATA_VENTAS.map(v => v.id)) + 1;
+  const hoy = new Date().toISOString().slice(0,10);
+  DATA_VENTAS.unshift({
+    id: nuevoId,
+    cliente_id: clienteId,
+    cliente: cliente.nombre,
+    canal: document.getElementById('nv-canal').value,
+    fecha: hoy,
+    items: _nvItems.length,
+    total,
+    estado: document.getElementById('nv-estado').value,
+  });
+  cliente.ultima_compra = 'Ahora';
+  cliente.total_compras += total;
+  renderVentas();
+  renderDashboard();
+  saveData();
+  showToast('Venta #' + nuevoId + ' guardada');
+  showSection('ventas');
+}
+
+// ── CARGAR STOCK ──────────────────────────────────────────
+function scInit() {
+  const sel = document.getElementById('sc-producto');
+  if (sel) {
+    sel.innerHTML = '<option value="">— Seleccionar producto —</option>' +
+      DATA_PRODUCTOS.map(p => `<option value="${p.id}">${p.emoji} ${p.nombre}</option>`).join('');
+    sel.value = '';
+  }
+  document.getElementById('sc-cantidad').value = 1;
+  document.getElementById('sc-costo').value = '';
+  document.getElementById('sc-proveedor').value = '';
+  document.getElementById('sc-notas').value = '';
+  document.getElementById('sc-fecha').value = new Date().toISOString().slice(0,10);
+  document.getElementById('sc-estado-panel').innerHTML = '<span style="color:#94A3B8;font-size:13px;">Seleccioná un producto para ver su estado.</span>';
+  document.getElementById('sc-stock-antes').textContent = '—';
+  document.getElementById('sc-stock-ingreso').textContent = '—';
+  document.getElementById('sc-stock-despues').textContent = '—';
+  document.getElementById('sc-costo-total').textContent = '—';
+}
+
+function scActualizarProducto() {
+  const id = parseInt(document.getElementById('sc-producto').value);
+  const p = DATA_PRODUCTOS.find(x => x.id === id);
+  if (!p) return;
+  document.getElementById('sc-costo').value = p.precio_costo;
+  const badge = estadoStockBadge(p);
+  document.getElementById('sc-estado-panel').innerHTML = `
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+      <span style="font-size:28px;">${p.emoji}</span>
+      <div><div style="font-weight:600;">${p.nombre}</div><div style="font-size:12px;color:#94A3B8;">Stock mínimo: ${p.stock_minimo} u.</div></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;">${badge}<span style="font-size:13px;color:#64748B;">${p.stock_actual} u. en depósito</span></div>`;
+  scActualizarResumen();
+}
+
+function scActualizarResumen() {
+  const id = parseInt(document.getElementById('sc-producto').value);
+  const p = DATA_PRODUCTOS.find(x => x.id === id);
+  if (!p) return;
+  const cant = parseInt(document.getElementById('sc-cantidad').value) || 0;
+  const costo = parseFloat(document.getElementById('sc-costo').value) || 0;
+  document.getElementById('sc-stock-antes').textContent = p.stock_actual + ' u.';
+  document.getElementById('sc-stock-ingreso').textContent = '+' + cant + ' u.';
+  document.getElementById('sc-stock-despues').textContent = (p.stock_actual + cant) + ' u.';
+  document.getElementById('sc-costo-total').textContent = costo && cant ? pesos(costo * cant) : '—';
+}
+
+function guardarStock() {
+  const id = parseInt(document.getElementById('sc-producto').value);
+  const cant = parseInt(document.getElementById('sc-cantidad').value) || 0;
+  if (!id) { showToast('Seleccioná un producto'); return; }
+  if (cant <= 0) { showToast('Ingresá una cantidad válida'); return; }
+  const p = DATA_PRODUCTOS.find(x => x.id === id);
+  const eraCritico = p.stock_actual < p.stock_minimo;
+  p.stock_actual += cant;
+  const ahoraNormal = p.stock_actual >= p.stock_minimo;
+  renderStock();
+  renderDashboard();
+  saveData();
+  if (eraCritico && ahoraNormal) showToast('✅ ' + p.nombre + ' normalizado — stock OK');
+  else showToast('Ingreso guardado: +' + cant + ' u. de ' + p.nombre);
+  showSection('stock');
+}
+
+// ── DETALLE CLIENTE ──────────────────────────────────────────
+let _detalleClienteId = null;
+
+function cdInit() {
+  const c = DATA_CLIENTES.find(x => x.id === _detalleClienteId);
+  if (!c) return;
+
+  const TIPO_LABEL = { mayoristas:'Mayorista', frecuentes:'Frecuente', minoristas:'Minorista' };
+  const TIPO_BADGE = {
+    mayoristas: '<span class="badge badge-blue">Mayorista</span>',
+    frecuentes: '<span class="badge badge-green">Frecuente</span>',
+    minoristas: '<span class="badge badge-gray">Minorista</span>',
+  };
+
+  document.getElementById('cd-nombre').textContent = c.nombre;
+  document.getElementById('cd-nombre2').textContent = c.nombre;
+  document.getElementById('cd-tipo').textContent = TIPO_LABEL[c.tipo] || c.tipo;
+  document.getElementById('cd-badge-tipo').innerHTML = TIPO_BADGE[c.tipo] || '';
+  document.getElementById('cd-telefono').textContent = c.telefono;
+  document.getElementById('cd-email').textContent = c.email;
+  document.getElementById('cd-desde').textContent = c.fecha_alta || '—';
+  document.getElementById('cd-total').textContent = pesos(c.total_compras);
+  document.getElementById('cd-ultima').textContent = c.ultima_compra;
+
+  const av = document.getElementById('cd-avatar');
+  av.textContent = c.inicial;
+  av.style.background = c.color;
+  av.style.color = c.ctext;
+
+  const historial = DATA_VENTAS.filter(v => v.cliente_id === c.id);
+  document.getElementById('cd-ordenes').textContent = historial.length;
+  const ticket = historial.length ? Math.round(historial.reduce((s,v)=>s+v.total,0) / historial.length) : 0;
+  document.getElementById('cd-ticket').textContent = ticket ? pesos(ticket) : '—';
+
+  const BADGE = {
+    'Pagado':   '<span class="badge badge-green">Pagado</span>',
+    'Pendiente':'<span class="badge" style="background:#FEF3C7;color:#92400E;">Pendiente</span>',
+  };
+  const CANAL = { 'TN':'🌐 Online TN', 'Manual':'✍️ Manual' };
+  document.getElementById('cd-historial-body').innerHTML = historial.length
+    ? historial.map(v => `
+        <tr>
+          <td><span class="mono">#${v.id}</span></td>
+          <td style="font-size:12px;">${CANAL[v.canal] || v.canal}</td>
+          <td style="color:#64748B;">${v.fecha}</td>
+          <td style="color:#64748B;">${v.items} ítem${v.items!==1?'s':''}</td>
+          <td style="font-weight:700;">${pesos(v.total)}</td>
+          <td>${BADGE[v.estado]||v.estado}</td>
+        </tr>`).join('')
+    : '<tr><td colspan="6" style="text-align:center;color:#94A3B8;padding:24px;">Este cliente aún no tiene compras registradas</td></tr>';
+}
+
+// ── NUEVO CLIENTE ──────────────────────────────────────────
+function cnInit() {
+  ['cn-nombre','cn-telefono','cn-email','cn-direccion'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  const tipo = document.getElementById('cn-tipo');
+  if (tipo) tipo.value = 'mayoristas';
+}
+
+function guardarCliente() {
+  const nombre = document.getElementById('cn-nombre').value.trim();
+  if (!nombre) { showToast('El nombre es obligatorio'); return; }
+  const colores = [
+    { color:'#DBEAFE', ctext:'#1D4ED8' }, { color:'#DCFCE7', ctext:'#15803D' },
+    { color:'#FEF3C7', ctext:'#92400E' }, { color:'#F3E8FF', ctext:'#6B21A8' },
+    { color:'#FFE4E6', ctext:'#9F1239' }, { color:'#ECFDF5', ctext:'#065F46' },
+  ];
+  const col = colores[DATA_CLIENTES.length % colores.length];
+  const nuevoId = Math.max(...DATA_CLIENTES.map(c => c.id)) + 1;
+  DATA_CLIENTES.push({
+    id: nuevoId,
+    nombre,
+    inicial: nombre[0].toUpperCase(),
+    color: col.color,
+    ctext: col.ctext,
+    tipo: document.getElementById('cn-tipo').value,
+    telefono: document.getElementById('cn-telefono').value.trim() || '—',
+    email: document.getElementById('cn-email').value.trim() || '—',
+    total_compras: 0,
+    ultima_compra: '—',
+    fecha_alta: new Date().toISOString().slice(0,10),
+  });
+  renderClientes();
+  saveData();
+  showToast('Cliente ' + nombre + ' agregado');
+  showSection('clientes');
+}
+
+function eliminarVenta(id) {
+  const v = DATA_VENTAS.find(x => x.id === id);
+  if (!v) return;
+  showConfirm(`¿Eliminar la venta #${v.id} de ${v.cliente}?`, () => {
+    DATA_VENTAS.splice(DATA_VENTAS.findIndex(x => x.id === id), 1);
+    renderVentas();
+    renderDashboard();
+    saveData();
+    showToast('Venta #' + id + ' eliminada');
+  });
+}
+
+function eliminarProducto(id) {
+  const p = DATA_PRODUCTOS.find(x => x.id === id);
+  if (!p) return;
+  showConfirm(`¿Eliminar "${p.nombre}"? Se eliminará del stock y la tienda.`, () => {
+    DATA_PRODUCTOS.splice(DATA_PRODUCTOS.findIndex(x => x.id === id), 1);
+    renderProductos();
+    renderStock();
+    renderTienda();
+    renderDashboard();
+    saveData();
+    showToast(p.nombre + ' eliminado');
+  });
+}
+
+function eliminarUsuario(id) {
+  const u = DATA_USUARIOS.find(x => x.id === id);
+  if (!u) return;
+  showConfirm(`¿Eliminar al usuario ${u.nombre} ${u.apellido}?`, () => {
+    DATA_USUARIOS.splice(DATA_USUARIOS.findIndex(x => x.id === id), 1);
+    renderUsuarios();
+    saveData();
+    showToast('Usuario eliminado');
+  });
+}
+
+function eliminarCliente(id) {
+  const c = DATA_CLIENTES.find(x => x.id === id);
+  if (!c) return;
+  showConfirm(`¿Eliminar a "${c.nombre}"? Esta acción no se puede deshacer.`, () => {
+    const idx = DATA_CLIENTES.findIndex(x => x.id === id);
+    DATA_CLIENTES.splice(idx, 1);
+    renderClientes();
+    saveData();
+    showToast('Cliente eliminado');
+  });
+}
+
+// ── NUEVO / EDITAR PRODUCTO ──────────────────────────────────────────
+let _editProductoId = null;
+
+function calcMargen(prefix) {
+  const pv = parseFloat(document.getElementById(prefix+'-precio-venta').value) || 0;
+  const pc = parseFloat(document.getElementById(prefix+'-precio-costo').value) || 0;
+  const elM = document.getElementById(prefix+'-m-venta');
+  if (!elM) return;
+  document.getElementById(prefix+'-m-venta').textContent = pv ? pesos(pv) : '—';
+  document.getElementById(prefix+'-m-costo').textContent = pc ? pesos(pc) : '—';
+  if (!pv || !pc) { document.getElementById(prefix+'-m-pct').textContent = '—'; document.getElementById(prefix+'-m-gan').textContent = '—'; return; }
+  const mar = Math.round((pv - pc) / pv * 100);
+  const gan = pv - pc;
+  document.getElementById(prefix+'-m-pct').textContent = mar + '%';
+  document.getElementById(prefix+'-m-gan').textContent = pesos(gan);
+  const sem = document.getElementById(prefix+'-m-semaforo');
+  if (mar < 20)      { sem.textContent = '🔴 Margen muy bajo'; sem.style.background='#FEF2F2'; sem.style.color='#C0392B'; }
+  else if (mar < 30) { sem.textContent = '🟡 Margen aceptable'; sem.style.background='#FFFBEB'; sem.style.color='#92400E'; }
+  else if (mar < 50) { sem.textContent = '🟢 Margen bueno'; sem.style.background='#F0FDF4'; sem.style.color='#15803D'; }
+  else               { sem.textContent = '🟢 Margen excelente'; sem.style.background='#F0FDF4'; sem.style.color='#15803D'; }
+}
+
+function npActualizarMargen() { calcMargen('np'); }
+function epActualizarMargen() { calcMargen('ep'); }
+
+function npInit() {
+  ['np-nombre','np-precio-venta','np-precio-costo'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+  document.getElementById('np-emoji').value = '🧴';
+  document.getElementById('np-categoria').value = 'limpieza';
+  document.getElementById('np-stock-minimo').value = 10;
+  document.getElementById('np-estado').value = 'activo';
+  ['np-m-venta','np-m-costo','np-m-pct','np-m-gan'].forEach(id => { const el=document.getElementById(id); if(el) el.textContent='—'; });
+  const sem = document.getElementById('np-m-semaforo');
+  if (sem) { sem.textContent='Ingresá precios para ver el margen'; sem.style.background='#F1F5F9'; sem.style.color='#64748B'; }
+}
+
+function epInit() {
+  const p = DATA_PRODUCTOS.find(x => x.id === _editProductoId);
+  if (!p) return;
+  document.getElementById('ep-sub').textContent = p.emoji + ' ' + p.nombre;
+  document.getElementById('ep-nombre').value = p.nombre;
+  document.getElementById('ep-emoji').value = p.emoji;
+  document.getElementById('ep-categoria').value = p.categoria;
+  document.getElementById('ep-precio-venta').value = p.precio_venta;
+  document.getElementById('ep-precio-costo').value = p.precio_costo;
+  document.getElementById('ep-stock-minimo').value = p.stock_minimo;
+  document.getElementById('ep-estado').value = p.estado;
+  calcMargen('ep');
+}
+
+function guardarProducto(esEdicion) {
+  const prefix = esEdicion ? 'ep' : 'np';
+  const nombre = document.getElementById(prefix+'-nombre').value.trim();
+  const pv = parseFloat(document.getElementById(prefix+'-precio-venta').value);
+  const pc = parseFloat(document.getElementById(prefix+'-precio-costo').value);
+  if (!nombre) { showToast('El nombre es obligatorio'); return; }
+  if (!pv || !pc) { showToast('Ingresá precios válidos'); return; }
+
+  if (esEdicion) {
+    const p = DATA_PRODUCTOS.find(x => x.id === _editProductoId);
+    if (!p) return;
+    p.nombre     = nombre;
+    p.emoji      = document.getElementById('ep-emoji').value;
+    p.categoria  = document.getElementById('ep-categoria').value;
+    p.precio_venta = pv;
+    p.precio_costo = pc;
+    p.stock_minimo = parseInt(document.getElementById('ep-stock-minimo').value) || 0;
+    p.estado     = document.getElementById('ep-estado').value;
+    showToast(nombre + ' actualizado');
+  } else {
+    const nuevoId = Math.max(...DATA_PRODUCTOS.map(p => p.id)) + 1;
+    DATA_PRODUCTOS.push({
+      id: nuevoId,
+      nombre,
+      emoji:        document.getElementById('np-emoji').value,
+      categoria:    document.getElementById('np-categoria').value,
+      precio_venta: pv,
+      precio_costo: pc,
+      stock_actual: 0,
+      stock_minimo: parseInt(document.getElementById('np-stock-minimo').value) || 0,
+      ventas_30d:   0,
+      estado:       document.getElementById('np-estado').value,
+      tiene_foto:   false,
+      publicado_tn: false,
+      precio_tn:    null,
+    });
+    showToast(nombre + ' agregado');
+  }
+  renderProductos();
+  renderStock();
+  renderTienda();
+  saveData();
+  showSection('productos');
+}
+
+// ── NUEVO / EDITAR USUARIO ──────────────────────────────────────────
+let _editUsuarioId = null;
+let _euActivo = true;
+
+function nuInit() {
+  ['nu-nombre','nu-apellido','nu-email','nu-password','nu-password2'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.value = '';
+  });
+  document.getElementById('nu-rol').value = 'Vendedor';
+}
+
+function euInit() {
+  const u = DATA_USUARIOS.find(x => x.id === _editUsuarioId);
+  if (!u) return;
+  _euActivo = u.activo;
+  document.getElementById('eu-sub').textContent = u.nombre + ' ' + u.apellido;
+  document.getElementById('eu-nombre-display').textContent = u.nombre + ' ' + u.apellido;
+  document.getElementById('eu-rol-display').textContent = u.rol;
+  document.getElementById('eu-nombre').value = u.nombre;
+  document.getElementById('eu-apellido').value = u.apellido;
+  document.getElementById('eu-email').value = u.email;
+  document.getElementById('eu-rol').value = u.rol;
+  document.getElementById('eu-password').value = '';
+  document.getElementById('eu-password2').value = '';
+  const av = document.getElementById('eu-avatar');
+  av.textContent = u.inicial;
+  av.style.background = u.color;
+  av.style.color = u.ctext;
+  const tog = document.getElementById('eu-toggle');
+  tog.classList.toggle('on', u.activo);
+  if (u.rol === 'Administrador') {
+    document.getElementById('eu-rol').disabled = true;
+    tog.style.opacity = '0.4'; tog.style.cursor = 'not-allowed';
+  } else {
+    document.getElementById('eu-rol').disabled = false;
+    tog.style.opacity = ''; tog.style.cursor = '';
+  }
+}
+
+function euToggleActivo() {
+  const u = DATA_USUARIOS.find(x => x.id === _editUsuarioId);
+  if (!u || u.rol === 'Administrador') return;
+  _euActivo = !_euActivo;
+  document.getElementById('eu-toggle').classList.toggle('on', _euActivo);
+}
+
+function guardarUsuario(esEdicion) {
+  const prefix = esEdicion ? 'eu' : 'nu';
+  const nombre   = document.getElementById(prefix+'-nombre').value.trim();
+  const apellido = document.getElementById(prefix+'-apellido').value.trim();
+  const email    = document.getElementById(prefix+'-email').value.trim();
+  const pass     = document.getElementById(prefix+'-password').value;
+  const pass2    = document.getElementById(prefix+'-password2').value;
+  if (!nombre || !apellido) { showToast('Nombre y apellido son obligatorios'); return; }
+  if (!email) { showToast('El email es obligatorio'); return; }
+  if (!esEdicion && pass.length < 6) { showToast('La contraseña debe tener al menos 6 caracteres'); return; }
+  if (pass && pass !== pass2) { showToast('Las contraseñas no coinciden'); return; }
+
+  const ROL_COLORES = {
+    'Administrador': { color:'#DBEAFE', ctext:'#1D4ED8' },
+    'Vendedor':      { color:'#DCFCE7', ctext:'#15803D' },
+    'Depósito':      { color:'#F3E8FF', ctext:'#6B21A8' },
+  };
+  const rol = document.getElementById(prefix+'-rol').value;
+  const col = ROL_COLORES[rol] || { color:'#F1F5F9', ctext:'#475569' };
+
+  if (esEdicion) {
+    const u = DATA_USUARIOS.find(x => x.id === _editUsuarioId);
+    if (!u) return;
+    u.nombre   = nombre;
+    u.apellido = apellido;
+    u.email    = email;
+    u.rol      = u.rol === 'Administrador' ? 'Administrador' : rol;
+    u.activo   = u.rol === 'Administrador' ? true : _euActivo;
+    u.inicial  = nombre[0].toUpperCase();
+    u.color    = col.color;
+    u.ctext    = col.ctext;
+    showToast(nombre + ' actualizado');
+  } else {
+    const nuevoId = Math.max(...DATA_USUARIOS.map(u => u.id)) + 1;
+    DATA_USUARIOS.push({
+      id: nuevoId, nombre, apellido, email, rol,
+      activo: true,
+      ultimo_acceso: 'Ahora',
+      inicial: nombre[0].toUpperCase(),
+      color: col.color, ctext: col.ctext,
+    });
+    showToast(nombre + ' ' + apellido + ' agregado');
+  }
+  renderUsuarios();
+  saveData();
+  showSection('usuarios');
+}
+
+// ── GESTIONAR INSUMOS ──────────────────────────────────────────
+const DATA_INSUMOS = [
+  { id:1, nombre:'Hipoclorito 10%',    unidad:'litros',  costo:180 },
+  { id:2, nombre:'Fragancia lavanda',  unidad:'ml',      costo:85  },
+  { id:3, nombre:'Espesante HPMC',     unidad:'kg',      costo:420 },
+  { id:4, nombre:'Colorante azul',     unidad:'gramos',  costo:12  },
+  { id:5, nombre:'Envase 5L',          unidad:'unidades',costo:95  },
+  { id:6, nombre:'Etiqueta adhesiva',  unidad:'unidades',costo:8   },
+];
+let _fcEditId = null;
+
+function fcInit() {
+  fcCancelar();
+  fcRender();
+}
+
+function fcRender() {
+  document.getElementById('fc-count').textContent = DATA_INSUMOS.length + ' insumo' + (DATA_INSUMOS.length !== 1 ? 's' : '');
+  document.getElementById('fc-tbody').innerHTML = DATA_INSUMOS.length
+    ? DATA_INSUMOS.map(i => `
+        <tr>
+          <td style="font-weight:500;">${i.nombre}</td>
+          <td style="color:#64748B;text-transform:capitalize;">${i.unidad}</td>
+          <td style="font-weight:700;">${pesos(i.costo)}<span style="font-size:11px;color:#94A3B8;font-weight:400;"> / ${i.unidad}</span></td>
+          <td>
+            <div style="display:flex;gap:6px;">
+              <button class="btn btn-ghost btn-sm" onclick="fcEditar(${i.id})">✏️ Editar</button>
+              <button class="btn btn-ghost btn-sm" style="color:#C0392B;" onclick="fcEliminar(${i.id})">🗑️</button>
+            </div>
+          </td>
+        </tr>`).join('')
+    : '<tr><td colspan="4" style="text-align:center;color:#94A3B8;padding:24px;">No hay insumos cargados</td></tr>';
+}
+
+function fcMostrarNuevo() {
+  _fcEditId = null;
+  document.getElementById('fc-form-title').textContent = 'Nuevo insumo';
+  document.getElementById('fc-nombre').value = '';
+  document.getElementById('fc-unidad').value = 'litros';
+  document.getElementById('fc-costo').value = '';
+  document.getElementById('fc-form-panel').style.display = 'block';
+  document.getElementById('fc-nombre').focus();
+}
+
+function fcEditar(id) {
+  const i = DATA_INSUMOS.find(x => x.id === id);
+  if (!i) return;
+  _fcEditId = id;
+  document.getElementById('fc-form-title').textContent = 'Editar insumo';
+  document.getElementById('fc-nombre').value = i.nombre;
+  document.getElementById('fc-unidad').value = i.unidad;
+  document.getElementById('fc-costo').value = i.costo;
+  document.getElementById('fc-form-panel').style.display = 'block';
+  document.getElementById('fc-nombre').focus();
+}
+
+function fcCancelar() {
+  _fcEditId = null;
+  document.getElementById('fc-form-panel').style.display = 'none';
+  document.getElementById('fc-nombre').value = '';
+  document.getElementById('fc-costo').value = '';
+}
+
+function fcGuardarInsumo() {
+  const nombre = document.getElementById('fc-nombre').value.trim();
+  const costo  = parseFloat(document.getElementById('fc-costo').value);
+  const unidad = document.getElementById('fc-unidad').value;
+  if (!nombre) { showToast('El nombre es obligatorio'); return; }
+  if (!costo)  { showToast('Ingresá un costo válido'); return; }
+  if (_fcEditId) {
+    const i = DATA_INSUMOS.find(x => x.id === _fcEditId);
+    i.nombre = nombre; i.unidad = unidad; i.costo = costo;
+    showToast(nombre + ' actualizado');
+  } else {
+    const nuevoId = DATA_INSUMOS.length ? Math.max(...DATA_INSUMOS.map(x => x.id)) + 1 : 1;
+    DATA_INSUMOS.push({ id: nuevoId, nombre, unidad, costo });
+    showToast(nombre + ' agregado');
+  }
+  fcCancelar();
+  fcRender();
+}
+
+function fcEliminar(id) {
+  const i = DATA_INSUMOS.find(x => x.id === id);
+  if (!i) return;
+  showConfirm(`¿Eliminar el insumo "${i.nombre}"?`, () => {
+    DATA_INSUMOS.splice(DATA_INSUMOS.findIndex(x => x.id === id), 1);
+    fcRender();
+    showToast('Insumo eliminado');
+  });
+}
+
+// ── PANEL DE NOTIFICACIONES ──────────────────────────────────────────
+let _notifsLeidas = new Set();
+
+function generarNotifs() {
+  const notifs = [];
+  DATA_PRODUCTOS.forEach(p => {
+    if (p.stock_actual < p.stock_minimo) {
+      notifs.push({ id:'crit-'+p.id, tipo:'danger', icono:'🔴', titulo:'Stock crítico: ' + p.nombre, sub: p.stock_actual + ' u. — mínimo ' + p.stock_minimo, seccion:'stock' });
+    } else {
+      const vd = p.ventas_30d / 30;
+      const dias = vd > 0 ? p.stock_actual / vd : 999;
+      if (dias < 14) {
+        notifs.push({ id:'bajo-'+p.id, tipo:'warn', icono:'🟡', titulo:'Reponer pronto: ' + p.nombre, sub: Math.round(dias) + ' días de cobertura', seccion:'stock' });
+      }
+    }
+    if (!p.tiene_foto && p.estado === 'activo') {
+      notifs.push({ id:'foto-'+p.id, tipo:'info', icono:'📷', titulo:'Sin foto: ' + p.nombre, sub: 'No se puede publicar en Tiendanube', seccion:'tienda' });
+    }
+  });
+  DATA_VENTAS.filter(v => v.estado === 'Pendiente').forEach(v => {
+    notifs.push({ id:'pend-'+v.id, tipo:'warn', icono:'⏳', titulo:'Pago pendiente: #' + v.id, sub: v.cliente + ' — ' + pesos(v.total), seccion:'ventas' });
+  });
+  return notifs;
+}
+
+function toggleNotifPanel() {
+  const panel = document.getElementById('notif-panel');
+  const abierto = panel.style.display !== 'none';
+  if (abierto) { panel.style.display = 'none'; return; }
+  renderNotifPanel();
+  panel.style.display = 'block';
+}
+
+function renderNotifPanel() {
+  const notifs = generarNotifs();
+  const noLeidas = notifs.filter(n => !_notifsLeidas.has(n.id));
+  const badge = document.getElementById('notif-badge');
+  badge.style.display = noLeidas.length ? 'block' : 'none';
+  badge.textContent = noLeidas.length > 9 ? '9+' : noLeidas.length;
+
+  const list = document.getElementById('notif-list');
+  if (!notifs.length) {
+    list.innerHTML = '<div style="padding:32px;text-align:center;color:#94A3B8;font-size:13px;">✅ Todo en orden — sin alertas</div>';
+    return;
+  }
+  const COLORES = { danger:'#FEF2F2', warn:'#FFFBEB', info:'#EFF6FF' };
+  list.innerHTML = notifs.map(n => `
+    <div onclick="notifNavegar('${n.seccion}')" style="display:flex;align-items:flex-start;gap:12px;padding:12px 16px;border-bottom:1px solid #F8FAFC;cursor:pointer;background:${_notifsLeidas.has(n.id) ? 'white' : COLORES[n.tipo]||'white'};transition:background .15s;"
+      onmouseover="this.style.background='#F8FAFC'" onmouseout="this.style.background='${_notifsLeidas.has(n.id) ? 'white' : COLORES[n.tipo]||'white'}'">
+      <span style="font-size:18px;flex-shrink:0;">${n.icono}</span>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:13px;font-weight:${_notifsLeidas.has(n.id)?'400':'600'};color:#0F172A;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${n.titulo}</div>
+        <div style="font-size:11px;color:#94A3B8;margin-top:2px;">${n.sub}</div>
+      </div>
+      ${!_notifsLeidas.has(n.id) ? '<div style="width:8px;height:8px;border-radius:50%;background:#2E86AB;flex-shrink:0;margin-top:4px;"></div>' : ''}
+    </div>`).join('');
+}
+
+function notifNavegar(seccion) {
+  document.getElementById('notif-panel').style.display = 'none';
+  showSection(seccion);
+}
+
+function marcarLeidas() {
+  generarNotifs().forEach(n => _notifsLeidas.add(n.id));
+  document.getElementById('notif-badge').style.display = 'none';
+  renderNotifPanel();
+}
+
+function actualizarBadge() {
+  const noLeidas = generarNotifs().filter(n => !_notifsLeidas.has(n.id));
+  const badge = document.getElementById('notif-badge');
+  if (badge) {
+    badge.style.display = noLeidas.length ? 'block' : 'none';
+    badge.textContent = noLeidas.length > 9 ? '9+' : noLeidas.length;
+  }
+}
+
+// Cerrar panel al clickear afuera
+document.addEventListener('click', e => {
+  const wrapper = document.getElementById('notif-wrapper');
+  if (wrapper && !wrapper.contains(e.target)) {
+    document.getElementById('notif-panel').style.display = 'none';
+  }
+});
+
+function searchClientes(q) { renderClientes(q); }
+function searchProductos(q) { renderProductos(q); }
+function searchDStock(input) { renderStock(input.value); }
+
+// ═══════════════════════════════════════════════
+// PERSISTENCIA EN LOCALSTORAGE
+// ═══════════════════════════════════════════════
+
+const LS_KEY = 'ons_data_v1';
+
+function saveData() {
+  localStorage.setItem(LS_KEY, JSON.stringify({
+    productos: DATA_PRODUCTOS,
+    clientes:  DATA_CLIENTES,
+    ventas:    DATA_VENTAS,
+    usuarios:  DATA_USUARIOS,
+  }));
+}
+
+function loadData() {
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    if (!raw) return;
+    const saved = JSON.parse(raw);
+    if (saved.productos) DATA_PRODUCTOS.splice(0, DATA_PRODUCTOS.length, ...saved.productos);
+    if (saved.clientes)  DATA_CLIENTES.splice(0,  DATA_CLIENTES.length,  ...saved.clientes);
+    if (saved.ventas)    DATA_VENTAS.splice(0,    DATA_VENTAS.length,    ...saved.ventas);
+    if (saved.usuarios)  DATA_USUARIOS.splice(0,  DATA_USUARIOS.length,  ...saved.usuarios);
+  } catch(e) { console.warn('No se pudo cargar localStorage:', e); }
+}
+
+// ═══════════════════════════════════════════════
+// INICIALIZACIÓN
+// ═══════════════════════════════════════════════
+
+(function init() {
+  loadData();
+  renderVentas();
+
+  renderStock();
+  renderClientes();
+  renderProductos();
+  renderUsuarios();
+  renderTienda();
+  renderDashboard();
+  actualizarKPIsTienda();
+  actualizarBadge();
+  const savedSection = localStorage.getItem('ons_section') || 'dashboard';
+  showSection(savedSection);
+})();
+</script>
+</body>
+</html>
+
