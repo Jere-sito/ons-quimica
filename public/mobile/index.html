@@ -64,7 +64,7 @@
   .m-topbar-name { font-size: 14px; font-weight: 700; color: white; }
   .m-topbar-right { display: flex; align-items: center; gap: 8px; }
   .m-topbar-bell { width: 32px; height: 32px; border-radius: 8px; background: rgba(255,255,255,0.12); display: flex; align-items: center; justify-content: center; font-size: 15px; position: relative; }
-  .m-notif-dot { position: absolute; top: 5px; right: 5px; width: 7px; height: 7px; background: #E67E22; border-radius: 50%; border: 1.5px solid #1E3A5F; }
+  .m-notif-dot { position: absolute; top: -4px; right: -4px; min-width: 16px; height: 16px; padding: 0 3px; background: #C0392B; border-radius: 20px; border: 2px solid #1E3A5F; font-size: 9px; font-weight: 700; color: white; display: flex; align-items: center; justify-content: center; }
   .m-avatar { width: 30px; height: 30px; border-radius: 8px; background: linear-gradient(135deg,#2E86AB,#1E3A5F); display: flex; align-items: center; justify-content: center; color: white; font-size: 13px; font-weight: 700; }
 
   /* ─── BOTTOM NAV ─── */
@@ -369,7 +369,7 @@
             <img src="/logo.png" style="height:28px;width:auto;object-fit:contain;" alt="ONS Química" />
           </div>
           <div class="m-topbar-right">
-            <div class="m-topbar-bell">🔔<div class="m-notif-dot"></div></div>
+            <div class="m-topbar-bell" onclick="toggleMNotifPanel()">🔔<div class="m-notif-dot" id="m-notif-badge" style="display:none;"></div></div>
             <div class="m-avatar">H</div>
           </div>
         </div>
@@ -3217,13 +3217,93 @@ function toggleDesktop() {
   document.getElementById('view-toggle-btn').innerHTML = isDesktop ? '📱 Vista mobile' : '🖥️ Vista escritorio';
 }
 
+// ── PANEL DE NOTIFICACIONES MOBILE ──────────────────────────────
+const M_NOTIFS = [
+  { id:'crit-1', tipo:'danger', icono:'🔴', titulo:'Stock crítico: Lavandina 5L',       sub:'8 u. — mínimo 20',          seccion:'stock' },
+  { id:'crit-2', tipo:'danger', icono:'🔴', titulo:'Stock crítico: Suavizante Floral 1L', sub:'3 u. — mínimo 15',         seccion:'stock' },
+  { id:'bajo-5', tipo:'warn',   icono:'🟡', titulo:'Reponer pronto: Limpiavidrios 500ml', sub:'14 días de cobertura',     seccion:'stock' },
+  { id:'foto-2', tipo:'info',   icono:'📷', titulo:'Sin foto: Suavizante Floral 1L',      sub:'No se puede publicar en Tiendanube', seccion:'tienda' },
+  { id:'foto-4', tipo:'info',   icono:'📷', titulo:'Sin foto: Jabón Líquido Manos',       sub:'No se puede publicar en Tiendanube', seccion:'tienda' },
+  { id:'pend-1', tipo:'warn',   icono:'⏳', titulo:'Pago pendiente: #4518',               sub:'Limpieza Total SRL — $87.600',      seccion:'ventas' },
+];
+let _mNotifsLeidas = new Set();
+
+function toggleMNotifPanel() {
+  const panel = document.getElementById('m-notif-panel');
+  const backdrop = document.getElementById('m-notif-backdrop');
+  const abierto = panel.style.display === 'flex';
+  if (abierto) { closeMNotifPanel(); return; }
+  renderMNotifPanel();
+  panel.style.display = 'flex';
+  backdrop.style.display = 'block';
+}
+
+function closeMNotifPanel() {
+  document.getElementById('m-notif-panel').style.display = 'none';
+  document.getElementById('m-notif-backdrop').style.display = 'none';
+}
+
+function renderMNotifPanel() {
+  const noLeidas = M_NOTIFS.filter(n => !_mNotifsLeidas.has(n.id));
+  const badge = document.getElementById('m-notif-badge');
+  if (badge) {
+    badge.style.display = noLeidas.length ? 'flex' : 'none';
+    badge.textContent = noLeidas.length > 9 ? '9+' : noLeidas.length;
+  }
+  const COLORES = { danger:'#FEF2F2', warn:'#FFFBEB', info:'#EFF6FF' };
+  document.getElementById('m-notif-list').innerHTML = M_NOTIFS.length
+    ? M_NOTIFS.map(n => `
+        <div onclick="mNotifNavegar('${n.seccion}')" style="display:flex;align-items:flex-start;gap:12px;padding:14px 16px;border-bottom:1px solid #F8FAFC;cursor:pointer;background:${_mNotifsLeidas.has(n.id)?'white':COLORES[n.tipo]||'white'};">
+          <span style="font-size:20px;flex-shrink:0;">${n.icono}</span>
+          <div style="flex:1;">
+            <div style="font-size:13px;font-weight:${_mNotifsLeidas.has(n.id)?'400':'600'};color:#0F172A;">${n.titulo}</div>
+            <div style="font-size:11px;color:#94A3B8;margin-top:2px;">${n.sub}</div>
+          </div>
+          ${!_mNotifsLeidas.has(n.id)?'<div style="width:8px;height:8px;border-radius:50%;background:#2E86AB;flex-shrink:0;margin-top:4px;"></div>':''}
+        </div>`).join('')
+    : '<div style="padding:32px;text-align:center;color:#94A3B8;font-size:13px;">✅ Todo en orden</div>';
+}
+
+function mNotifNavegar(seccion) {
+  closeMNotifPanel();
+  showSection(seccion);
+}
+
+function marcarMLeidas() {
+  M_NOTIFS.forEach(n => _mNotifsLeidas.add(n.id));
+  const badge = document.getElementById('m-notif-badge');
+  if (badge) badge.style.display = 'none';
+  renderMNotifPanel();
+}
+
 // Dispositivo real: ocultar review shell y mostrar app directo
 if (window.innerWidth <= 768) {
   document.body.classList.add('mobile-app');
 }
+
+// Badge al iniciar
+window.addEventListener('DOMContentLoaded', () => {
+  const noLeidas = M_NOTIFS.filter(n => !_mNotifsLeidas.has(n.id));
+  const badge = document.getElementById('m-notif-badge');
+  if (badge && noLeidas.length) {
+    badge.style.display = 'flex';
+    badge.textContent = noLeidas.length;
+  }
+});
 </script>
 
 <button id="view-toggle-btn" class="view-toggle" onclick="toggleDesktop()">🖥️ Vista escritorio</button>
+
+<!-- PANEL DE NOTIFICACIONES MOBILE -->
+<div id="m-notif-backdrop" onclick="closeMNotifPanel()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:8000;"></div>
+<div id="m-notif-panel" style="display:none;position:fixed;bottom:0;left:0;right:0;background:white;border-radius:20px 20px 0 0;z-index:8001;max-height:80vh;display:none;flex-direction:column;overflow:hidden;">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 16px 12px;border-bottom:1px solid #F1F5F9;flex-shrink:0;">
+    <div style="width:36px;height:4px;background:#E2E8F0;border-radius:2px;position:absolute;top:8px;left:50%;transform:translateX(-50%);"></div>
+    <span style="font-size:15px;font-weight:700;color:#0F172A;margin-top:4px;">Notificaciones</span>
+    <button onclick="marcarMLeidas()" style="font-size:11px;color:#2E86AB;background:none;border:none;cursor:pointer;font-family:inherit;padding:4px 8px;">Marcar leídas</button>
+  </div>
+  <div id="m-notif-list" style="overflow-y:auto;flex:1;"></div>
+</div>
 
 </body>
 </html>
