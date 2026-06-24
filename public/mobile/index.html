@@ -3236,11 +3236,19 @@ function toggleMNotifPanel() {
   renderMNotifPanel();
   panel.style.display = 'flex';
   backdrop.style.display = 'block';
+  // Bloquear scroll del fondo
+  const inner = document.getElementById('phoneInner');
+  if (inner) inner.style.overflow = 'hidden';
+  document.body.style.overflow = 'hidden';
 }
 
 function closeMNotifPanel() {
   document.getElementById('m-notif-panel').style.display = 'none';
   document.getElementById('m-notif-backdrop').style.display = 'none';
+  // Restaurar scroll del fondo
+  const inner = document.getElementById('phoneInner');
+  if (inner) inner.style.overflow = '';
+  document.body.style.overflow = '';
 }
 
 function renderMNotifPanel() {
@@ -3296,12 +3304,12 @@ window.addEventListener('DOMContentLoaded', () => {
 
 <!-- PANEL DE NOTIFICACIONES MOBILE -->
 <div id="m-notif-backdrop" onclick="closeMNotifPanel()" style="display:none;position:fixed;inset:0;z-index:8000;"></div>
-<div id="m-notif-panel" style="display:none;position:fixed;top:70px;right:12px;width:300px;background:white;border-radius:12px;border:1px solid #E2E8F0;box-shadow:0 8px 24px rgba(0,0,0,0.15);z-index:8001;max-height:70vh;flex-direction:column;overflow:hidden;">
+<div id="m-notif-panel" style="display:none;position:fixed;top:70px;right:12px;width:300px;background:white;border-radius:12px;border:1px solid #E2E8F0;box-shadow:0 8px 24px rgba(0,0,0,0.15);z-index:8001;max-height:70vh;flex-direction:column;overflow:hidden;overscroll-behavior:contain;">
   <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid #F1F5F9;flex-shrink:0;">
     <span style="font-size:14px;font-weight:700;color:#0F172A;">Notificaciones</span>
     <button onclick="marcarMLeidas()" style="font-size:11px;color:#2E86AB;background:none;border:none;cursor:pointer;font-family:inherit;padding:4px 8px;">Marcar leídas</button>
   </div>
-  <div id="m-notif-list" style="overflow-y:auto;flex:1;"></div>
+  <div id="m-notif-list" style="overflow-y:auto;flex:1;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;"></div>
 </div>
 
 </body>
