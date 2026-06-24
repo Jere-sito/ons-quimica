@@ -281,16 +281,16 @@ body { font-family: 'Inter', system-ui, sans-serif; background: #F1F5F9; color: 
     <img src="/logo.png" alt="ONS Química" style="height:90px;width:auto;object-fit:contain;" />
   </div>
   <div class="sb-nav">
-    <div class="sb-item active" data-section="dashboard" onclick="showSection('dashboard')"><span class="sb-icon">📊</span>Dashboard</div>
-    <div class="sb-item" data-section="ventas" onclick="showSection('ventas')"><span class="sb-icon">🛒</span>Ventas</div>
-    <div class="sb-item" data-section="stock" onclick="showSection('stock')"><span class="sb-icon">🏭</span>Stock</div>
-    <div class="sb-item" data-section="clientes" onclick="showSection('clientes')"><span class="sb-icon">👥</span>Clientes</div>
-    <div class="sb-item" data-section="productos" onclick="showSection('productos')"><span class="sb-icon">📦</span>Productos</div>
-    <div class="sb-item" data-section="formulas" onclick="showSection('formulas')"><span class="sb-icon">🧪</span>Fórmulas</div>
-    <div class="sb-item" data-section="reportes" onclick="showSection('reportes')"><span class="sb-icon">📈</span>Reportes</div>
-    <div class="sb-item" data-section="tienda" onclick="showSection('tienda')"><span class="sb-icon">🏪</span>Tienda</div>
-    <div class="sb-item" data-section="usuarios" onclick="showSection('usuarios')"><span class="sb-icon">👤</span>Usuarios</div>
-    <div class="sb-item" data-section="config" onclick="showSection('config')"><span class="sb-icon">⚙️</span>Configuración</div>
+    <div class="sb-item active" data-section="dashboard" onclick="showSection('dashboard')"><i data-lucide="layout-dashboard" class="lucide-icon sb-icon"></i>Dashboard</div>
+    <div class="sb-item" data-section="ventas" onclick="showSection('ventas')"><i data-lucide="shopping-cart" class="lucide-icon sb-icon"></i>Ventas</div>
+    <div class="sb-item" data-section="stock" onclick="showSection('stock')"><i data-lucide="package" class="lucide-icon sb-icon"></i>Stock</div>
+    <div class="sb-item" data-section="clientes" onclick="showSection('clientes')"><i data-lucide="users" class="lucide-icon sb-icon"></i>Clientes</div>
+    <div class="sb-item" data-section="productos" onclick="showSection('productos')"><i data-lucide="box" class="lucide-icon sb-icon"></i>Productos</div>
+    <div class="sb-item" data-section="formulas" onclick="showSection('formulas')"><i data-lucide="flask-conical" class="lucide-icon sb-icon"></i>Fórmulas</div>
+    <div class="sb-item" data-section="reportes" onclick="showSection('reportes')"><i data-lucide="bar-chart-2" class="lucide-icon sb-icon"></i>Reportes</div>
+    <div class="sb-item" data-section="tienda" onclick="showSection('tienda')"><i data-lucide="store" class="lucide-icon sb-icon"></i>Tienda</div>
+    <div class="sb-item" data-section="usuarios" onclick="showSection('usuarios')"><i data-lucide="user-circle" class="lucide-icon sb-icon"></i>Usuarios</div>
+    <div class="sb-item" data-section="config" onclick="showSection('config')"><i data-lucide="settings" class="lucide-icon sb-icon"></i>Configuración</div>
   </div>
   <div class="sb-footer">
     <div class="sb-avatar">H</div>
@@ -3767,6 +3767,7 @@ function loadData() {
   actualizarBadge();
   const savedSection = localStorage.getItem('ons_section') || 'dashboard';
   showSection(savedSection);
+  if (typeof lucide !== 'undefined') lucide.createIcons();
 })();
 </script>
 </body>
