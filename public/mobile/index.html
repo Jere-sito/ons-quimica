@@ -3295,11 +3295,10 @@ window.addEventListener('DOMContentLoaded', () => {
 <button id="view-toggle-btn" class="view-toggle" onclick="toggleDesktop()">🖥️ Vista escritorio</button>
 
 <!-- PANEL DE NOTIFICACIONES MOBILE -->
-<div id="m-notif-backdrop" onclick="closeMNotifPanel()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:8000;"></div>
-<div id="m-notif-panel" style="display:none;position:fixed;bottom:0;left:0;right:0;background:white;border-radius:20px 20px 0 0;z-index:8001;max-height:80vh;display:none;flex-direction:column;overflow:hidden;">
-  <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 16px 12px;border-bottom:1px solid #F1F5F9;flex-shrink:0;">
-    <div style="width:36px;height:4px;background:#E2E8F0;border-radius:2px;position:absolute;top:8px;left:50%;transform:translateX(-50%);"></div>
-    <span style="font-size:15px;font-weight:700;color:#0F172A;margin-top:4px;">Notificaciones</span>
+<div id="m-notif-backdrop" onclick="closeMNotifPanel()" style="display:none;position:fixed;inset:0;z-index:8000;"></div>
+<div id="m-notif-panel" style="display:none;position:fixed;top:70px;right:12px;width:300px;background:white;border-radius:12px;border:1px solid #E2E8F0;box-shadow:0 8px 24px rgba(0,0,0,0.15);z-index:8001;max-height:70vh;flex-direction:column;overflow:hidden;">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid #F1F5F9;flex-shrink:0;">
+    <span style="font-size:14px;font-weight:700;color:#0F172A;">Notificaciones</span>
     <button onclick="marcarMLeidas()" style="font-size:11px;color:#2E86AB;background:none;border:none;cursor:pointer;font-family:inherit;padding:4px 8px;">Marcar leídas</button>
   </div>
   <div id="m-notif-list" style="overflow-y:auto;flex:1;"></div>
