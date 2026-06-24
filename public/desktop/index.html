@@ -2645,7 +2645,7 @@ function renderPVTable(data) {
     const marStyle = p.mar<30?'color:#E67E22;font-weight:600;':'color:#27AE60;font-weight:600;';
     const rid = 'pvr-'+p.nombre.replace(/\s+/g,'-').replace(/\./g,'');
     return `<tr id="${rid}">
-      <td><span style="margin-right:6px;">${p.emoji}</span><span style="font-weight:500;">${p.nombre}</span></td>
+      <td><i data-lucide="${getCategoryIcon(p.categoria)}" class="lucide-icon lucide-icon-sm" style="color:#64748B;display:inline-block;vertical-align:middle;margin-right:8px;"></i><span style="font-weight:500;">${p.nombre}</span></td>
       <td>${p.stock_actual} u.</td>
       <td style="font-weight:700;">${fmt(p.precio_venta)}</td>
       <td style="color:#64748B;">${fmt(p.precio_costo)}</td>
@@ -2686,7 +2686,7 @@ function renderPVAlerts(data) {
     top3.forEach((p,i) => {
       html += `<div class="alert-row" onclick="hlPV('${p.nombre}')" style="cursor:pointer;padding:6px 0;">
         <div style="width:18px;height:18px;border-radius:4px;background:#DCFCE7;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#15803D;flex-shrink:0;">${i+1}</div>
-        <div><div style="font-size:12px;font-weight:500;">${p.emoji} ${p.nombre}</div>
+        <div><div style="font-size:12px;font-weight:500;display:flex;align-items:center;gap:6px;"><i data-lucide="${getCategoryIcon(p.categoria)}" class="lucide-icon lucide-icon-sm" style="color:#64748B;"></i>${p.nombre}</div>
         <div style="font-size:11px;color:#94A3B8;">${p.mar}% margen</div></div></div>`;
     });
     html += '</div>';
@@ -2876,7 +2876,7 @@ function renderStock(query) {
     .map(p => {
       const filter = estadoStockFilter(p);
       return `<tr data-filter="${filter}" data-name="${p.nombre.toLowerCase()}">
-        <td><span style="font-size:15px;margin-right:8px;">${p.emoji}</span><span style="font-weight:500;">${p.nombre}</span></td>
+        <td><i data-lucide="${getCategoryIcon(p.categoria)}" class="lucide-icon lucide-icon-sm" style="color:#64748B;display:inline-block;vertical-align:middle;margin-right:8px;"></i><span style="font-weight:500;">${p.nombre}</span></td>
         <td style="color:#64748B;text-transform:capitalize;">${p.categoria}</td>
         <td style="font-weight:700;">${p.stock_actual} u.</td>
         <td style="color:#64748B;">${p.stock_minimo} u.</td>
@@ -2885,6 +2885,7 @@ function renderStock(query) {
     }).join('');
   if (!document.getElementById('d-stock-body').innerHTML.trim())
     document.getElementById('d-stock-body').innerHTML = `<tr><td colspan="5" style="text-align:center;color:#94A3B8;padding:24px;">Sin resultados para "${q}"</td></tr>`;
+  if (typeof lucide !== 'undefined') lucide.createIcons();
 }
 
 function renderClientes(query) {
@@ -2917,6 +2918,11 @@ function renderClientes(query) {
     : `<tr><td colspan="6" style="text-align:center;color:#94A3B8;padding:24px;">Sin resultados para "${q}"</td></tr>`;
 }
 
+function getCategoryIcon(cat) {
+  const map = { limpieza: 'droplets', industrial: 'wrench', fragancias: 'wind' };
+  return map[(cat||'').toLowerCase()] || 'box';
+}
+
 function renderProductos(query) {
   const q = (query || '').toLowerCase();
   const rows = DATA_PRODUCTOS.filter(p => !q || p.nombre.toLowerCase().includes(q) || p.categoria.toLowerCase().includes(q));
@@ -2929,7 +2935,7 @@ function renderProductos(query) {
     return `<tr data-filter="${p.categoria}">
       <td>
         <div style="display:flex;align-items:center;gap:10px;">
-          <span style="font-size:18px;">${p.emoji}</span>
+          <i data-lucide="${getCategoryIcon(p.categoria)}" class="lucide-icon lucide-icon-lg" style="color:#64748B;"></i>
           <span style="font-weight:500;">${p.nombre}</span>
         </div>
       </td>
@@ -2947,6 +2953,7 @@ function renderProductos(query) {
     </tr>`;
   }).join('')
   : `<tr><td colspan="7" style="text-align:center;color:#94A3B8;padding:24px;">Sin resultados para "${q}"</td></tr>`;
+  if (typeof lucide !== 'undefined') lucide.createIcons();
 }
 
 function renderUsuarios() {
@@ -2988,7 +2995,7 @@ function renderTienda() {
     const filter = sinFoto ? 'sin foto' : (p.publicado_tn ? 'publicados' : 'sin publicar');
     if (sinFoto) return `
       <tr data-filter="sin foto" style="background:#FFF5F5;">
-        <td><span style="font-size:16px;margin-right:8px;opacity:0.4;">${p.emoji}</span><span style="font-weight:500;color:#94A3B8;">${p.nombre}</span></td>
+        <td><i data-lucide="${getCategoryIcon(p.categoria)}" class="lucide-icon lucide-icon-sm" style="color:#CBD5E1;display:inline-block;vertical-align:middle;margin-right:8px;"></i><span style="font-weight:500;color:#94A3B8;">${p.nombre}</span></td>
         <td><div style="width:36px;height:36px;border-radius:8px;border:2px dashed #CBD5E1;display:flex;align-items:center;justify-content:center;font-size:13px;color:#94A3B8;cursor:pointer;" title="Subir foto" onclick="showToast('Función de carga de foto próximamente')">+</div></td>
         <td style="color:#64748B;">${pesos(p.precio_venta)}</td>
         <td style="color:#94A3B8;">—</td>
@@ -2997,14 +3004,15 @@ function renderTienda() {
       </tr>`;
     return `
       <tr data-filter="${filter}">
-        <td><span style="font-size:16px;margin-right:8px;">${p.emoji}</span><span style="font-weight:500;">${p.nombre}</span></td>
-        <td><div style="width:36px;height:36px;border-radius:8px;background:#F1F5F9;display:flex;align-items:center;justify-content:center;font-size:18px;${!p.publicado_tn?'opacity:0.5;':''}">${p.emoji}</div></td>
+        <td><i data-lucide="${getCategoryIcon(p.categoria)}" class="lucide-icon lucide-icon-sm" style="color:#64748B;display:inline-block;vertical-align:middle;margin-right:8px;"></i><span style="font-weight:500;">${p.nombre}</span></td>
+        <td><div style="width:36px;height:36px;border-radius:8px;background:#F1F5F9;display:flex;align-items:center;justify-content:center;${!p.publicado_tn?'opacity:0.5;':''}"><i data-lucide="${getCategoryIcon(p.categoria)}" class="lucide-icon" style="color:#64748B;"></i></div></td>
         <td style="color:#64748B;">${pesos(p.precio_venta)}</td>
         <td style="font-weight:700;">${p.precio_tn ? pesos(p.precio_tn) : '—'}</td>
         <td style="color:#64748B;">${p.stock_actual} u.</td>
         <td><div class="switch ${p.publicado_tn?'on':''}" onclick="toggleTienda(${p.id})"><div class="switch-knob"></div></div></td>
       </tr>`;
   }).join('');
+  if (typeof lucide !== 'undefined') lucide.createIcons();
 }
 
 function toggleTienda(id) {
